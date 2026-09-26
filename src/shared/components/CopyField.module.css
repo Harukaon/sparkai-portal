@@ -1,0 +1,35 @@
+.field + .field {
+  margin-top: var(--space-5);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 28px;
+}
+
+.label {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+}
+
+.value {
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.hint {
+  margin-top: var(--space-2);
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+}

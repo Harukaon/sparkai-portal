@@ -1,0 +1,77 @@
+.footer {
+  /* 上方是深色行动区，已有自己的下边距，这里不宜再留太多空白 */
+  margin-top: var(--space-16);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--color-line);
+  background-color: var(--color-canvas);
+}
+
+.inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-10);
+}
+
+.brandBlock {
+  max-width: 320px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background-color: var(--color-ink);
+  box-shadow: inset -6px -6px 0 0 var(--color-accent);
+}
+
+.brandName {
+  line-height: 1;
+}
+
+.tagline {
+  margin-top: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, auto));
+  gap: var(--space-3) var(--space-10);
+  align-content: start;
+}
+
+.link {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-8);
+  border-top: 1px solid var(--color-line);
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+}
