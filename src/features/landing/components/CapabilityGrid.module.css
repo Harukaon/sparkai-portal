@@ -1,0 +1,49 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+}
+
+.item {
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* 左侧列留出右边界，形成规整的两栏表格感 */
+.item:nth-child(odd) {
+  padding-right: var(--space-10);
+  border-right: 1px solid var(--color-line);
+}
+
+.item:nth-child(even) {
+  padding-left: var(--space-10);
+}
+
+.itemTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.itemDetail {
+  max-width: 42ch;
+  margin-top: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .item:nth-child(odd),
+  .item:nth-child(even) {
+    padding-inline: 0;
+    border-right: none;
+  }
+}

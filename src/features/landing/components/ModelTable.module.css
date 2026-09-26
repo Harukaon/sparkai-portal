@@ -1,0 +1,57 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.group {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.groupTitle {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-line);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* 表格自身不带外边框，交给外层卡片，避免双层线 */
+.table {
+  border-radius: 0;
+}
+
+.table :global(.ant-table) {
+  background-color: transparent;
+}
+
+.model {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modelName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+.modelTag {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.modelId {
+  color: var(--color-ink-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.footnote {
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+}

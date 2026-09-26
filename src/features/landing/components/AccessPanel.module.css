@@ -1,0 +1,74 @@
+.section {
+  padding-block: var(--space-16) var(--space-20);
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: var(--space-12);
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-inverse);
+  color: var(--color-ink-inverse);
+}
+
+/* ---------- 左侧：行动入口 ---------- */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  max-width: 40ch;
+  margin-top: var(--space-4);
+  color: rgba(251, 249, 245, 0.68);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+/* 深色底上的次要按钮：透明底 + 浅色描边与文字 */
+.ghost {
+  border-color: rgba(251, 249, 245, 0.28);
+  background-color: transparent;
+  color: var(--color-ink-inverse);
+}
+
+.ghost:hover {
+  border-color: var(--color-accent) !important;
+  background-color: rgba(232, 163, 23, 0.12);
+  color: var(--color-accent) !important;
+}
+
+/* ---------- 右侧：接入信息 ---------- */
+
+.endpoints {
+  min-width: 0;
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+@media (max-width: 960px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-10);
+    padding: var(--space-8);
+  }
+}
