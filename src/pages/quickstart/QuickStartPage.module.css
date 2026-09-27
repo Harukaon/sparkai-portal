@@ -1,0 +1,144 @@
+.page {
+  width: min(100%, 880px);
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-6) var(--space-20);
+}
+
+.head {
+  margin-bottom: var(--space-8);
+}
+
+.head h1 {
+  font-size: clamp(var(--text-2xl), 3vw, 2.25rem);
+  letter-spacing: -0.025em;
+}
+
+.head p {
+  margin-top: var(--space-3);
+  color: var(--color-ink-muted);
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-10);
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  position: relative;
+  padding: var(--space-5) var(--space-6) var(--space-5) 64px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  top: var(--space-5);
+  left: var(--space-5);
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.steps h2 {
+  font-size: var(--text-base);
+}
+
+.steps p {
+  margin-top: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.steps a {
+  margin-left: var(--space-2);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.steps code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.endpoints {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.endpoints > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  overflow-wrap: anywhere;
+}
+
+.endpoints span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.code h2 {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.snippet {
+  position: relative;
+}
+
+.copy {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+}
+
+.snippet pre {
+  margin: 0;
+  padding: var(--space-5);
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-inverse);
+  color: var(--color-ink-inverse);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.snippet :global(.ant-typography-copy) {
+  color: rgba(251, 249, 245, 0.7) !important;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-8) var(--space-4) var(--space-12);
+  }
+
+  .steps li {
+    padding-left: 56px;
+  }
+
+  .endpoints {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

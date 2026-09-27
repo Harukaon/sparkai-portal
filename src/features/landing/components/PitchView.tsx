@@ -12,7 +12,6 @@ import { Button } from 'antd'
 import { useAuthStore } from '@/features/auth/auth-store'
 
 import { PRIMARY_ACTION_LABEL } from '@/app/nav'
-import { useNotReady } from '@/shared/hooks/use-not-ready'
 
 import styles from './PitchView.module.css'
 
@@ -46,7 +45,6 @@ const HIGHLIGHTS: Highlight[] = [
  * 产品细节不放在这里 —— 右边一屏已经是价格与计算器了。
  */
 export function PitchView() {
-  const notReady = useNotReady()
   const authenticated = useAuthStore((state) => state.status === 'authenticated')
 
   return (
@@ -72,14 +70,11 @@ export function PitchView() {
             {authenticated ? '进入账号' : PRIMARY_ACTION_LABEL}
           </Button>
         </Link>
-        <Button
-          size="large"
-          className={styles.secondary}
-          icon={<BookOutlined />}
-          onClick={() => notReady('文档')}
-        >
-          查看文档
-        </Button>
+        <Link to="/quickstart">
+          <Button size="large" className={styles.secondary} icon={<BookOutlined />}>
+            接入教程
+          </Button>
+        </Link>
       </div>
 
       <ul className={styles.highlights}>

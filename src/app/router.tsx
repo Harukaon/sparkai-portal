@@ -13,6 +13,7 @@ import { OverviewPage } from '@/pages/console/OverviewPage'
 import { WalletPage } from '@/pages/console/WalletPage'
 import { HomePage } from '@/pages/landing/HomePage'
 import { ModelsPage } from '@/pages/models/ModelsPage'
+import { QuickStartPage } from '@/pages/quickstart/QuickStartPage'
 
 /**
  * 路由表：新增页面在这里加一条。
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'models', element: <ModelsPage /> },
+      { path: 'quickstart', element: <QuickStartPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'oauth/:provider', element: <OAuthCallbackPage /> },
