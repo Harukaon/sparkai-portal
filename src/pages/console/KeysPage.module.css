@@ -1,0 +1,83 @@
+.endpoints {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.endpoints > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.endpointLabel {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.endpoint {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.table {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.table :global(.ant-table-thead > tr > th) {
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.stack {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.tag {
+  margin-inline-end: 0;
+}
+
+.muted {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.expired {
+  color: var(--color-danger);
+}
+
+.keyCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.keyCell code {
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.actions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+@media (max-width: 720px) {
+  .endpoints {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

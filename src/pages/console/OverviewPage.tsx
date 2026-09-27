@@ -65,7 +65,7 @@ export function OverviewPage() {
         actions={
           <>
             <Link to="/models"><Button>查看模型价格</Button></Link>
-            <Link to="/console/logs"><Button type="primary">查看请求记录</Button></Link>
+            <Link to="/console/keys"><Button type="primary">管理 API 密钥</Button></Link>
           </>
         }
       />

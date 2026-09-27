@@ -1,0 +1,11 @@
+.form {
+  margin-top: var(--space-4);
+}
+
+.form :global(.ant-form-item-extra) {
+  font-size: var(--text-xs);
+}
+
+.full {
+  width: 100%;
+}

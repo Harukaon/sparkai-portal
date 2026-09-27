@@ -1,4 +1,4 @@
-import { DashboardOutlined, ProfileOutlined } from '@ant-design/icons'
+import { DashboardOutlined, KeyOutlined, ProfileOutlined } from '@ant-design/icons'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
@@ -16,6 +16,7 @@ interface ConsoleNavItem {
 /** 用户控制台的侧边导航；新页面做好后在这里加一项。 */
 const CONSOLE_NAV: ConsoleNavItem[] = [
   { to: '/console', label: '总览', icon: <DashboardOutlined />, end: true },
+  { to: '/console/keys', label: 'API 密钥', icon: <KeyOutlined /> },
   { to: '/console/logs', label: '请求记录', icon: <ProfileOutlined /> },
 ]
 

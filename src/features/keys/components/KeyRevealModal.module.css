@@ -1,0 +1,9 @@
+.key {
+  margin: var(--space-4) 0 !important;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}

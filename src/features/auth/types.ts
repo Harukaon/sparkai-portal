@@ -76,6 +76,8 @@ export interface SystemStatus {
   system_name: string
   logo?: string
   version?: string
+  /** 后台配置的对外地址，用于拼接给用户的接口地址 */
+  server_address?: string
 
   register_enabled: boolean
   password_login_enabled: boolean

@@ -7,6 +7,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { KeysPage } from '@/pages/console/KeysPage'
 import { LogsPage } from '@/pages/console/LogsPage'
 import { OverviewPage } from '@/pages/console/OverviewPage'
 import { HomePage } from '@/pages/landing/HomePage'
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
         element: <RequireAuth><ConsoleLayout /></RequireAuth>,
         children: [
           { index: true, element: <OverviewPage /> },
+          { path: 'keys', element: <KeysPage /> },
           { path: 'logs', element: <LogsPage /> },
         ],
       },
