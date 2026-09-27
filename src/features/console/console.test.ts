@@ -3,23 +3,22 @@ import { describe, expect, it } from 'vitest'
 import { amountToQuota, formatQuota, quotaFormatFrom } from './quota'
 import { containsPattern, dailyUsage, rangeFor } from './usage'
 
-describe('额度显示', () => {
-  it('默认按美元显示，500,000 额度 = $1', () => {
-    const format = quotaFormatFrom({ quota_per_unit: 500_000, quota_display_type: 'USD' })
-    expect(formatQuota(1_250_000, format)).toBe('$2.50')
-  })
-
-  it('人民币按后台汇率换算，小额请求保留足够小数', () => {
-    const format = quotaFormatFrom({ quota_per_unit: 500_000, quota_display_type: 'CNY', usd_exchange_rate: 7.3 })
+describe('额度显示（统一人民币）', () => {
+  it('500,000 额度 = 1 美元，按后台汇率换成人民币', () => {
+    const format = quotaFormatFrom({ quota_per_unit: 500_000, usd_exchange_rate: 7.3 })
     expect(formatQuota(500_000, format)).toBe('¥7.30')
     expect(formatQuota(100, format)).toBe('¥0.00146')
   })
 
-  it('额度模式直接显示整数；金额与额度可互相换算', () => {
-    const tokens = quotaFormatFrom({ quota_display_type: 'TOKENS' })
-    expect(formatQuota(1234567, tokens)).toBe('1,234,567')
-    const usd = quotaFormatFrom({ quota_per_unit: 500_000 })
-    expect(amountToQuota(10, usd)).toBe(5_000_000)
+  it('后台设成美元或额度模式也照样显示人民币；没配汇率按 7.3', () => {
+    const format = quotaFormatFrom({ quota_display_type: 'USD', display_in_currency: false })
+    expect(format.symbol).toBe('¥')
+    expect(formatQuota(1_000_000, format)).toBe('¥14.60')
+  })
+
+  it('人民币金额与内部额度可互相换算', () => {
+    const format = quotaFormatFrom({ quota_per_unit: 500_000, usd_exchange_rate: 7.3 })
+    expect(amountToQuota(73, format)).toBe(5_000_000)
   })
 })
 

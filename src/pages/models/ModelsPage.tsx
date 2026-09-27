@@ -5,7 +5,9 @@ import { useMemo, useState } from 'react'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
-import { formatUSD, matchesGroup, modelPrice } from '@/features/models/pricing'
+import { formatUsdAsCny, useQuotaFormat } from '@/features/console/quota'
+import type { QuotaFormat } from '@/features/console/quota'
+import { matchesGroup, modelPrice } from '@/features/models/pricing'
 import type { ModelPrice, PricingModel, PricingVendor } from '@/features/models/pricing'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
 
@@ -13,14 +15,14 @@ import styles from './ModelsPage.module.css'
 
 const EMPTY_VENDORS: PricingVendor[] = []
 
-function PriceLabel({ price }: { price: ModelPrice }) {
+function PriceLabel({ price, format }: { price: ModelPrice; format: QuotaFormat }) {
   if (price.kind === 'dynamic') return <span className={styles.muted}>动态计费，请以实际用量为准</span>
   if (price.kind === 'unknown') return <span className={styles.muted}>按实际选择的分组计费</span>
-  if (price.kind === 'request') return <span><strong>{formatUSD(price.each)}</strong><small> / 次</small></span>
+  if (price.kind === 'request') return <span><strong>{formatUsdAsCny(price.each, format)}</strong><small> / 次</small></span>
   return (
     <div className={styles.priceStack}>
-      <span><small>输入</small> <strong>{formatUSD(price.input)}</strong></span>
-      <span><small>输出</small> <strong>{formatUSD(price.output)}</strong></span>
+      <span><small>输入</small> <strong>{formatUsdAsCny(price.input, format)}</strong></span>
+      <span><small>输出</small> <strong>{formatUsdAsCny(price.output, format)}</strong></span>
     </div>
   )
 }
@@ -33,6 +35,7 @@ export function ModelsPage() {
   usePageTitle('模型广场')
   const { message } = AntdApp.useApp()
   const pricing = usePricing()
+  const format = useQuotaFormat()
   const userGroup = useAuthStore((state) => state.user?.group)
   const [keyword, setKeyword] = useState('')
   const [groupChoice, setGroupChoice] = useState('')
@@ -108,7 +111,7 @@ export function ModelsPage() {
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th scope="col">模型</th><th scope="col">厂商与能力</th><th scope="col">本站价格（美元）</th></tr></thead>
+                <thead><tr><th scope="col">模型</th><th scope="col">厂商与能力</th><th scope="col">本站价格（人民币）</th></tr></thead>
                 <tbody>
                   {visible.map((model) => (
                     <tr key={model.model_name}>
@@ -127,7 +130,7 @@ export function ModelsPage() {
                           {(model.supported_endpoint_types ?? []).slice(0, 3).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
                         </div>
                       </td>
-                      <td className={styles.price}><PriceLabel price={modelPrice(model, group ? data.group_ratio?.[group] : undefined)} />
+                      <td className={styles.price}><PriceLabel format={format} price={modelPrice(model, group ? data.group_ratio?.[group] : undefined)} />
                         {model.quota_type === 0 && model.billing_mode !== 'tiered_expr' && !model.billing_expr && group !== 'auto' ? <small>每百万 token</small> : null}
                       </td>
                     </tr>
@@ -136,7 +139,7 @@ export function ModelsPage() {
               </table>
             </div>
           )}
-          <p className={styles.footnote}>价格以美元显示；倍率、分组及动态计费规则以实际请求结算为准。</p>
+          <p className={styles.footnote}>价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。</p>
         </>
       ) : null}
     </div>

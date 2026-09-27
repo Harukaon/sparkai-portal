@@ -56,14 +56,6 @@ export function modelPrice(model: PricingModel, groupRatio?: number): ModelPrice
   return { kind: 'unknown' }
 }
 
-export function formatUSD(value: number): string {
-  if (!Number.isFinite(value)) return '—'
-  return `$${new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: value > 0 && value < 0.01 ? 6 : 4,
-  }).format(value)}`
-}
-
 export function matchesGroup(model: PricingModel, group: string): boolean {
   return model.enable_groups.includes('all') || model.enable_groups.includes(group)
 }

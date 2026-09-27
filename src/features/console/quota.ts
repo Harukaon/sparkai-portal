@@ -5,7 +5,7 @@ import type { SystemStatus } from '@/features/auth/types'
 
 /**
  * New API 内部用整数「额度」记账，默认 500,000 额度 = 1 美元。
- * 后台可设置余额按美元、人民币、自定义货币或原始额度显示，这里完全跟随后台设置。
+ * 显示时统一换算成人民币。
  */
 export type QuotaUnit = 'USD' | 'CNY' | 'CUSTOM' | 'TOKENS'
 
@@ -17,30 +17,28 @@ export interface QuotaFormat {
 }
 
 const DEFAULT_PER_UNIT = 500_000
+const DEFAULT_USD_RATE = 7.3
 
 function positive(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback
 }
 
+/**
+ * 按业务要求，本站所有额度和金额一律用人民币显示，不跟随后台的美元/额度显示设置。
+ * 汇率用后台「美元汇率」（usd_exchange_rate），缺省按 7.3。
+ */
 export function quotaFormatFrom(status?: Partial<SystemStatus>): QuotaFormat {
-  const perUnit = positive(status?.quota_per_unit, DEFAULT_PER_UNIT)
-  const declared = status?.quota_display_type?.toUpperCase()
-  const unit = declared ?? (status?.display_in_currency === false ? 'TOKENS' : 'USD')
-  switch (unit) {
-    case 'CNY':
-      return { unit: 'CNY', perUnit, symbol: '¥', rate: positive(status?.usd_exchange_rate, 1) }
-    case 'CUSTOM':
-      return {
-        unit: 'CUSTOM',
-        perUnit,
-        symbol: status?.custom_currency_symbol || '¤',
-        rate: positive(status?.custom_currency_exchange_rate, 1),
-      }
-    case 'TOKENS':
-      return { unit: 'TOKENS', perUnit, symbol: '', rate: 1 }
-    default:
-      return { unit: 'USD', perUnit, symbol: '$', rate: 1 }
+  return {
+    unit: 'CNY',
+    perUnit: positive(status?.quota_per_unit, DEFAULT_PER_UNIT),
+    symbol: '¥',
+    rate: positive(status?.usd_exchange_rate, DEFAULT_USD_RATE),
   }
+}
+
+/** 美元金额 → 人民币文本（模型单价等以美元计价的数据用） */
+export function formatUsdAsCny(usd: number, format: QuotaFormat): string {
+  return formatQuota(usd * format.perUnit, format)
 }
 
 /** 额度 → 给人看的金额；小额保留更多小数，避免单次请求显示成 0。 */

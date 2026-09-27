@@ -32,11 +32,18 @@ const STATUS: Record<string, { label: string; color?: string }> = {
   expired: { label: '已过期' },
 }
 
-/** 充值数量：金额模式下 1 = 1 美元额度，额度模式下就是额度点数 */
+/**
+ * New API 的充值数量以「份」为单位，1 份 = 1 美元额度（后台按此计价和到账），
+ * 页面上统一换算成人民币显示。
+ */
 function amountLabel(amount: number, format: QuotaFormat): string {
-  return format.unit === 'TOKENS'
-    ? `${amount.toLocaleString('zh-CN')} 额度`
-    : formatQuota(amount * format.perUnit, format)
+  return formatQuota(amount * format.perUnit, format)
+}
+
+/** 易支付（支付宝、微信等）按人民币收款；其他网关币种以支付页为准 */
+function moneyText(value: string | number, method?: string): string {
+  const text = Number(value).toFixed(2)
+  return !method || ['stripe', 'waffo', 'waffo_pancake', 'creem'].includes(method) ? text : `¥${text}`
 }
 
 function useDebounced<T>(value: T, delay: number): T {
@@ -124,13 +131,13 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
                 precision={0}
                 value={amount}
                 onChange={(value) => setAmount(typeof value === 'number' ? value : null)}
-                placeholder="自定义数量"
+                placeholder="自定义份数"
                 aria-label="自定义充值数量"
                 style={{ width: '100%' }}
               />
-              <Space.Addon>{format.unit === 'TOKENS' ? '额度' : '美元额度'}</Space.Addon>
+              <Space.Addon>份 × {amountLabel(1, format)}</Space.Addon>
             </Space.Compact>
-            {method ? <span className={styles.hint}>{method.name} 最少充值 {amountLabel(method.min, format)}</span> : null}
+            {method ? <span className={styles.hint}>自定义时按份填写，1 份到账 {amountLabel(1, format)} 额度；{method.name} 最少 {method.min} 份</span> : null}
           </div>
 
           <div className={styles.field}>
@@ -147,7 +154,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
             <span className={styles.quote}>
               应付
               <strong>
-                {!valid ? '—' : quote.isFetching ? '计算中…' : quote.isError ? '—' : quote.data ?? '—'}
+                {!valid ? '—' : quote.isFetching ? '计算中…' : quote.isError || !quote.data ? '—' : moneyText(quote.data, method?.type)}
               </strong>
             </span>
             <Button type="primary" size="large" loading={paying === method?.type} disabled={!valid || quote.isError} onClick={() => void pay()}>
@@ -276,7 +283,7 @@ export function WalletPage() {
       title: '实付',
       dataIndex: 'money',
       align: 'right',
-      render: (value: number) => <span className={styles.mono}>{Number(value || 0).toFixed(2)}</span>,
+      render: (value: number, record) => <span className={styles.mono}>{moneyText(value || 0, record.payment_method)}</span>,
     },
     {
       title: '状态',

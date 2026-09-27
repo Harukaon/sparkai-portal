@@ -2,6 +2,7 @@ import { Slider } from 'antd'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useQuotaFormat } from '@/features/console/quota'
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { PRICE_ROWS } from '@/features/landing/data'
 import { blendedPrice, compareMonthlyCost } from '@/features/landing/pricing'
@@ -17,21 +18,23 @@ const VOLUME_MIN = 1
 const VOLUME_MAX = 500
 const VOLUME_DEFAULT = 130
 
-function unitText(value: number): string {
-  return formatMoney(value, '$', 2)
+/** 示例数据以美元记，按后台汇率换算成人民币显示 */
+function unitText(value: number, rate: number): string {
+  return formatMoney(value * rate, '¥', 2)
 }
 
 /** 每百万 token 的单价，用一行紧凑文字表示 */
-function pricePair(input: number, output: number): string {
-  return `${unitText(input)} / ${unitText(output)}`
+function pricePair(input: number, output: number, rate: number): string {
+  return `${unitText(input, rate)} / ${unitText(output, rate)}`
 }
 
 /**
  * 右侧价格面板：上面是官方与本站的单价对照，下面是实时计算器。
- * 单价口径统一为「美元 / 百万 token」，输入与输出分开列。
+ * 单价口径为「人民币 / 百万 token」（示例数据以美元记，按汇率换算），输入与输出分开列。
  */
 export function PricePanel() {
   const [volume, setVolume] = useState(VOLUME_DEFAULT)
+  const { rate } = useQuotaFormat()
 
   const comparison = useMemo(() => compareMonthlyCost(PRICE_ROWS, volume), [volume])
 
@@ -39,7 +42,7 @@ export function PricePanel() {
     <div className={styles.panel}>
       <div className={styles.head}>
         <h2 className={styles.title}>价格对比</h2>
-        <span className={styles.unitNote}>价格示例 · 美元 / 百万 token</span>
+        <span className={styles.unitNote}>价格示例 · 元 / 百万 token</span>
       </div>
 
       <table className={styles.table}>
@@ -74,7 +77,7 @@ export function PricePanel() {
 
                 <td className={styles.priceCell}>
                   <span className={styles.officialPrice}>
-                    {pricePair(row.official.input, row.official.output)}
+                    {pricePair(row.official.input, row.official.output, rate)}
                   </span>
                   <span className={styles.barTrack} aria-hidden="true">
                     <span
@@ -87,7 +90,7 @@ export function PricePanel() {
                 <td className={styles.priceCell}>
                   <span className={styles.oursInner}>
                     <span className={styles.ourPrice}>
-                      {pricePair(row.ours.input, row.ours.output)}
+                      {pricePair(row.ours.input, row.ours.output, rate)}
                     </span>
                     <span className={styles.discount}>
                       {Math.round((1 - ratio) * 100)}% 示例差额
@@ -133,14 +136,14 @@ export function PricePanel() {
         <dl className={styles.result}>
           <div className={styles.resultRow}>
             <dt>官方直连</dt>
-            <dd className={styles.resultOfficial}>{formatMoney(comparison.official, '$', 0)}</dd>
+            <dd className={styles.resultOfficial}>{formatMoney(comparison.official * rate, '¥', 0)}</dd>
           </div>
           <div className={`${styles.resultRow} ${styles.resultHero}`}>
             <dt>走本站</dt>
             <dd className={styles.resultOurs}>
-              {formatMoney(comparison.ours, '$', 0)}
+              {formatMoney(comparison.ours * rate, '¥', 0)}
               <span className={styles.savedTag}>
-                示例差额 {formatMoney(comparison.saved, '$', 0)} ·{' '}
+                示例差额 {formatMoney(comparison.saved * rate, '¥', 0)} ·{' '}
                 {formatPercent(comparison.savedRatio, 0)}
               </span>
             </dd>
