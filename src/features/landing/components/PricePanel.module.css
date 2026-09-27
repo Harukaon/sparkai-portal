@@ -162,6 +162,13 @@
   line-height: 1.6;
 }
 
+.caption a {
+  margin-left: var(--space-2);
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ---------- 计算器 ---------- */
 
 .calculator {

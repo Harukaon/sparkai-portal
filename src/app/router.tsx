@@ -8,6 +8,7 @@ import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ConsolePage } from '@/pages/console/ConsolePage'
 import { HomePage } from '@/pages/landing/HomePage'
+import { ModelsPage } from '@/pages/models/ModelsPage'
 
 /**
  * 路由表：新增页面在这里加一条。
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
     element: <SiteLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: 'models', element: <ModelsPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'oauth/:provider', element: <OAuthCallbackPage /> },

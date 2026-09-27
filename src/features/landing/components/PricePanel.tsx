@@ -1,5 +1,6 @@
 import { Slider } from 'antd'
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { PRICE_ROWS } from '@/features/landing/data'
@@ -38,7 +39,7 @@ export function PricePanel() {
     <div className={styles.panel}>
       <div className={styles.head}>
         <h2 className={styles.title}>价格对比</h2>
-        <span className={styles.unitNote}>美元 / 百万 token · 输入 / 输出</span>
+        <span className={styles.unitNote}>价格示例 · 美元 / 百万 token</span>
       </div>
 
       <table className={styles.table}>
@@ -89,7 +90,7 @@ export function PricePanel() {
                       {pricePair(row.ours.input, row.ours.output)}
                     </span>
                     <span className={styles.discount}>
-                      {Math.round((1 - ratio) * 100)}% off
+                      {Math.round((1 - ratio) * 100)}% 示例差额
                     </span>
                   </span>
                   <span className={styles.barTrack} aria-hidden="true">
@@ -106,12 +107,13 @@ export function PricePanel() {
       </table>
 
       <p className={styles.caption}>
-        综合单价按 {INPUT_SHARE_LABEL} 折算，仅用于横向比较；实际按调用时的真实用量计费。
+        以上是演示数据，不是实际报价或优惠承诺。综合单价按 {INPUT_SHARE_LABEL} 折算。
+        <Link to="/models">查看实时模型价格</Link>
       </p>
 
       <div className={styles.calculator}>
         <div className={styles.calcHead}>
-          <h3 className={styles.calcTitle}>算一下你每月能省多少</h3>
+          <h3 className={styles.calcTitle}>示例用量计算</h3>
           <span className={styles.calcValue}>
             <span className={styles.calcNumber}>{volume}</span>
             <span className={styles.calcUnit}>M token / 月</span>
@@ -138,7 +140,7 @@ export function PricePanel() {
             <dd className={styles.resultOurs}>
               {formatMoney(comparison.ours, '$', 0)}
               <span className={styles.savedTag}>
-                省 {formatMoney(comparison.saved, '$', 0)} ·{' '}
+                示例差额 {formatMoney(comparison.saved, '$', 0)} ·{' '}
                 {formatPercent(comparison.savedRatio, 0)}
               </span>
             </dd>

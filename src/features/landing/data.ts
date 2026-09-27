@@ -3,7 +3,7 @@ import type { PriceRow, StatItem } from '@/features/landing/types'
 /*
  * ⚠️ 示例数据：价格是占位的，定价确认后替换。
  * 单位统一为「美元 / 百万 token」，与各厂商官网口径一致。
- * 接后端接口时，把这里换成 `useQuery` 拉取的数据即可（结构见 types.ts）。
+ * 首页只作计算示意，不作为报价；实际可用模型及价格以 /models 为准。
  */
 export const PRICE_ROWS: PriceRow[] = [
   {
@@ -36,14 +36,10 @@ export const PRICE_ROWS: PriceRow[] = [
   },
 ]
 
-/**
- * ⚠️ 底部数据带。
- * 「10,000+ 开发者的选择」「99.9% 服务可用性」是对外承诺，上线前必须确认能兑现，
- * 拿不准就先删掉对应条目 —— 写上去的数字是要负责的。
- */
+/** 只描述产品已支持的能力，不放未核实的用户数和可用率承诺。 */
 export const STATS: StatItem[] = [
-  { icon: 'users', value: '10,000+', label: '开发者的选择' },
-  { icon: 'cube', value: '主流模型全覆盖', label: 'OpenAI · Anthropic · DeepSeek · 智谱等' },
-  { icon: 'bolt', value: '99.9%', label: '服务可用性' },
-  { icon: 'globe', value: '全球加速', label: '更快 · 更稳定 · 更可靠' },
+  { icon: 'users', value: '账号自助管理', label: '注册 · 登录 · 密钥' },
+  { icon: 'cube', value: '主流协议兼容', label: 'OpenAI · Anthropic' },
+  { icon: 'bolt', value: '按量计费', label: '用量与请求记录可查' },
+  { icon: 'globe', value: '统一入口', label: '一套地址接入开放的模型' },
 ]

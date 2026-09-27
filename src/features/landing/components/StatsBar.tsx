@@ -15,8 +15,7 @@ const ICONS: Record<string, ReactNode> = {
 /**
  * 底部数据带。
  *
- * ⚠️ 「10,000+ 开发者的选择」「99.9% 服务可用性」是对外的承诺，
- * 上线前必须确认能兑现；拿不准就删掉 data.ts 里对应条目，这里会自动少一格。
+ * 这里只展示已实现的产品能力，不显示未经核实的经营数字。
  */
 export function StatsBar() {
   return (

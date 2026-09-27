@@ -1,5 +1,5 @@
-import { App as AntdApp, Button } from 'antd'
-import { ArrowRightOutlined } from '@ant-design/icons'
+import { App as AntdApp, Button, Drawer } from 'antd'
+import { ArrowRightOutlined, MenuOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
@@ -23,6 +23,7 @@ export function SiteHeader() {
   const notReady = useNotReady()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const authStatus = useAuthStore((state) => state.status)
   const user = useAuthStore((state) => state.user)
 
@@ -49,19 +50,25 @@ export function SiteHeader() {
         </Link>
 
         <nav className={styles.nav} aria-label="主导航">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={styles.navLink}
-              onClick={() => notReady(item)}
-            >
+          {NAV_ITEMS.map((item) => item === '模型广场' || item === '价格对比' ? (
+            <Link key={item} to="/models" className={styles.navLink}>{item}</Link>
+          ) : item === '快速开始' ? (
+            <Link key={item} to={authStatus === 'authenticated' ? '/console' : '/register'} className={styles.navLink}>{item}</Link>
+          ) : (
+            <button key={item} type="button" className={styles.navLink} onClick={() => notReady(item)}>
               {item}
             </button>
           ))}
         </nav>
 
         <div className={styles.actions}>
+          <Button
+            className={styles.menuToggle}
+            type="text"
+            icon={<MenuOutlined />}
+            aria-label="打开导航"
+            onClick={() => setMenuOpen(true)}
+          />
           {authStatus === 'authenticated' ? (
             <>
               <Link to="/console" className={styles.login}>{user?.display_name || user?.username || '我的账号'}</Link>
@@ -81,6 +88,15 @@ export function SiteHeader() {
           ) : null}
         </div>
       </div>
+      <Drawer title="导航" placement="right" open={menuOpen} onClose={() => setMenuOpen(false)}>
+        <nav className={styles.mobileNav} aria-label="移动端导航">
+          <Link to="/models" onClick={() => setMenuOpen(false)}>模型广场与价格</Link>
+          <Link to={authStatus === 'authenticated' ? '/console' : '/register'} onClick={() => setMenuOpen(false)}>
+            {authStatus === 'authenticated' ? '我的账号' : '创建账号'}
+          </Link>
+          {authStatus !== 'authenticated' ? <Link to="/login" onClick={() => setMenuOpen(false)}>登录</Link> : null}
+        </nav>
+      </Drawer>
     </header>
   )
 }

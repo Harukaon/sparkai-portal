@@ -26,18 +26,18 @@ interface Highlight {
 const HIGHLIGHTS: Highlight[] = [
   {
     icon: <ThunderboltOutlined />,
-    title: '一分钟接入',
-    description: '无需修改代码',
+    title: '快速接入',
+    description: '只需替换 SDK 地址与密钥',
   },
   {
     icon: <SafetyCertificateOutlined />,
-    title: '稳定可靠',
-    description: '全球加速 · 高可用',
+    title: '协议兼容',
+    description: '支持 OpenAI 与 Anthropic',
   },
   {
     icon: <DollarOutlined />,
-    title: '显著节省成本',
-    description: '最高可省 70%',
+    title: '价格透明',
+    description: '分组和模型价格可查',
   },
 ]
 
@@ -63,7 +63,7 @@ export function PitchView() {
 
       <p className={styles.lead}>
         兼容 OpenAI 与 Anthropic 协议。已有的 SDK 只需替换 base_url，配置一个密钥，
-        即可统一访问全球主流大模型，享受更低的价格和更稳定的服务。
+        即可在一个地方查看已开放模型的价格、密钥和请求记录。
       </p>
 
       <div className={styles.actions}>

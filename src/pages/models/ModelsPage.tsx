@@ -1,0 +1,144 @@
+import { CopyOutlined, SearchOutlined } from '@ant-design/icons'
+import { App as AntdApp, Alert, Button, Empty, Input, Select, Skeleton, Tag } from 'antd'
+import { useMemo, useState } from 'react'
+
+import { useAuthStore } from '@/features/auth/auth-store'
+import { ModelIcon } from '@/features/landing/components/ModelIcon'
+import { usePricing } from '@/features/models/api'
+import { formatUSD, matchesGroup, modelPrice } from '@/features/models/pricing'
+import type { ModelPrice, PricingModel, PricingVendor } from '@/features/models/pricing'
+import { usePageTitle } from '@/shared/hooks/use-page-title'
+
+import styles from './ModelsPage.module.css'
+
+const EMPTY_VENDORS: PricingVendor[] = []
+
+function PriceLabel({ price }: { price: ModelPrice }) {
+  if (price.kind === 'dynamic') return <span className={styles.muted}>动态计费，请以实际用量为准</span>
+  if (price.kind === 'unknown') return <span className={styles.muted}>按实际选择的分组计费</span>
+  if (price.kind === 'request') return <span><strong>{formatUSD(price.each)}</strong><small> / 次</small></span>
+  return (
+    <div className={styles.priceStack}>
+      <span><small>输入</small> <strong>{formatUSD(price.input)}</strong></span>
+      <span><small>输出</small> <strong>{formatUSD(price.output)}</strong></span>
+    </div>
+  )
+}
+
+function vendorName(model: PricingModel, vendors: PricingVendor[]): string {
+  return vendors.find((vendor) => vendor.id === model.vendor_id)?.name || model.owner_by || '其他'
+}
+
+export function ModelsPage() {
+  usePageTitle('模型广场')
+  const { message } = AntdApp.useApp()
+  const pricing = usePricing()
+  const userGroup = useAuthStore((state) => state.user?.group)
+  const [keyword, setKeyword] = useState('')
+  const [groupChoice, setGroupChoice] = useState('')
+  const [vendorChoice, setVendorChoice] = useState('all')
+
+  const data = pricing.data
+  const groups = Object.entries(data?.usable_group ?? {})
+  const defaultGroup = groups.find(([name]) => name === userGroup)?.[0]
+    ?? groups.find(([name]) => name !== 'auto')?.[0]
+    ?? groups[0]?.[0]
+  const group = groups.some(([name]) => name === groupChoice) ? groupChoice : defaultGroup
+  const vendors = data?.vendors ?? EMPTY_VENDORS
+
+  const visible = useMemo(() => {
+    const search = keyword.trim().toLowerCase()
+    return (data?.data ?? []).filter((model) => {
+      if (group === 'auto') {
+        if (!model.enable_groups.includes('all') && !(data?.auto_groups ?? []).some((candidate) => matchesGroup(model, candidate))) return false
+      } else if (group && !matchesGroup(model, group)) return false
+      const vendor = vendorName(model, vendors)
+      if (vendorChoice !== 'all' && vendor !== vendorChoice) return false
+      return !search || `${model.model_name} ${model.description ?? ''} ${vendor}`.toLowerCase().includes(search)
+    })
+  }, [data, group, keyword, vendorChoice, vendors])
+
+  async function copyModel(id: string) {
+    try {
+      await navigator.clipboard.writeText(id)
+      message.success('调用名称已复制')
+    } catch {
+      message.error('复制失败，请手动选中名称')
+    }
+  }
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.head}>
+        <div>
+          <h1>模型广场</h1>
+          <p>按可用分组查看当前开放的模型和实际价格，不展示示例报价。</p>
+        </div>
+        {data ? <span className={styles.count}>{data.data.length} 个可用模型</span> : null}
+      </div>
+
+      {pricing.isError ? (
+        <Alert type="error" showIcon title="模型列表暂时无法获取" action={<Button size="small" onClick={() => void pricing.refetch()}>重试</Button>} />
+      ) : pricing.isPending ? (
+        <Skeleton active paragraph={{ rows: 8 }} />
+      ) : data ? (
+        <>
+          <div className={styles.filters}>
+            <Input value={keyword} onChange={(event) => setKeyword(event.target.value)} prefix={<SearchOutlined />} placeholder="搜索模型或厂商" aria-label="搜索模型或厂商" allowClear />
+            <Select
+              aria-label="选择计费分组"
+              value={group}
+              onChange={setGroupChoice}
+              placeholder="可用分组"
+              options={groups.map(([name, desc]) => ({ label: `${name}${desc ? ` · ${desc}` : ''}`, value: name }))}
+              disabled={!groups.length}
+            />
+            <Select
+              aria-label="筛选厂商"
+              value={vendorChoice}
+              onChange={setVendorChoice}
+              options={[{ label: '全部厂商', value: 'all' }, ...Array.from(new Set(data.data.map((model) => vendorName(model, vendors)))).sort().map((name) => ({ label: name, value: name }))]}
+            />
+          </div>
+          {group === 'auto' ? <p className={styles.hint}>自动分组会在调用时选定，最终价格以实际命中的分组为准。</p> : null}
+          {visible.length === 0 ? (
+            <div className={styles.empty}>
+              <Empty description={data.data.length ? '没有符合筛选条件的模型，换个条件试试' : '当前还没有开放的模型，请稍后再来查看'} />
+            </div>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th scope="col">模型</th><th scope="col">厂商与能力</th><th scope="col">本站价格（美元）</th></tr></thead>
+                <tbody>
+                  {visible.map((model) => (
+                    <tr key={model.model_name}>
+                      <td>
+                        <div className={styles.modelCell}>
+                          <ModelIcon modelId={model.model_name} name={model.model_name} />
+                          <div className={styles.modelText}>
+                            <strong>{model.model_name}</strong>
+                            {model.description ? <span>{model.description}</span> : null}
+                          </div>
+                          <Button type="text" size="small" aria-label={`复制 ${model.model_name} 的调用名称`} icon={<CopyOutlined />} onClick={() => void copyModel(model.model_name)} />
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.meta}><span>{vendorName(model, vendors)}</span>
+                          {(model.supported_endpoint_types ?? []).slice(0, 3).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
+                        </div>
+                      </td>
+                      <td className={styles.price}><PriceLabel price={modelPrice(model, group ? data.group_ratio?.[group] : undefined)} />
+                        {model.quota_type === 0 && model.billing_mode !== 'tiered_expr' && !model.billing_expr && group !== 'auto' ? <small>每百万 token</small> : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className={styles.footnote}>价格以美元显示；倍率、分组及动态计费规则以实际请求结算为准。</p>
+        </>
+      ) : null}
+    </div>
+  )
+}

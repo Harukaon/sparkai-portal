@@ -81,13 +81,42 @@
   background-color: transparent !important;
 }
 
-/* 窄屏：先收起导航，保留品牌与主按钮（导航后续放进抽屉） */
+.menuToggle {
+  display: none;
+}
+
+.mobileNav {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mobileNav a {
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-line);
+  font-size: var(--text-base);
+}
+
+/* 窄屏改为抽屉导航，保留品牌与主按钮。 */
 @media (max-width: 1080px) {
   .nav {
     display: none;
   }
 
+  .menuToggle {
+    display: inline-flex;
+  }
+
   .inner {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 380px) {
+  .actions > a:first-of-type {
+    display: none;
+  }
+
+  .actions {
+    gap: var(--space-2);
   }
 }
