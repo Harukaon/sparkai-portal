@@ -1,8 +1,8 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: clamp(20px, 2.2vw, 32px);
+  gap: var(--space-3);
+  padding: clamp(18px, 1.8vw, 26px);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background-color: rgba(255, 255, 255, 0.86);
@@ -40,7 +40,7 @@
 
 .table th,
 .table td {
-  padding: var(--space-3) 0;
+  padding: var(--space-2) 0;
   text-align: left;
   vertical-align: middle;
 }
@@ -130,32 +130,6 @@
   white-space: nowrap;
 }
 
-/* 细条：同一条基准下比较官方与本站的量级 */
-.barTrack {
-  display: block;
-  height: 3px;
-  margin-top: var(--space-2);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-surface-sunken);
-  overflow: hidden;
-}
-
-.barOfficial,
-.barOurs {
-  display: block;
-  height: 100%;
-  border-radius: var(--radius-pill);
-  transition: width 420ms var(--ease-out);
-}
-
-.barOfficial {
-  background-color: var(--color-line-strong);
-}
-
-.barOurs {
-  background-color: var(--color-accent);
-}
-
 .caption {
   color: var(--color-ink-subtle);
   font-size: var(--text-xs);
@@ -172,8 +146,7 @@
 /* ---------- 计算器 ---------- */
 
 .calculator {
-  margin-top: var(--space-1);
-  padding-top: var(--space-5);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-line);
 }
 
@@ -197,7 +170,7 @@
 }
 
 .calcNumber {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -208,7 +181,7 @@
 }
 
 .slider {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-1) 0 0;
 }
 
 /* 结果放在浅灰底块里，和上面的表格分开 */
@@ -216,8 +189,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin: var(--space-4) 0 0;
-  padding: var(--space-2) var(--space-5);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-1) var(--space-4);
   border-radius: var(--radius-md);
   background-color: var(--color-surface-sunken);
 }
@@ -227,7 +200,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-2) 0;
+  padding: 6px 0;
 }
 
 .resultRow + .resultRow {
@@ -254,7 +227,7 @@
 }
 
 .resultHero dd {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
 }
 
 .resultOurs {
@@ -276,5 +249,22 @@
 @media (max-width: 980px) {
   .panel {
     padding: var(--space-5);
+  }
+}
+
+/* 矮屏（小笔记本、浏览器放大）再收紧一档，保证整张卡片放得下 */
+@media (max-height: 820px) and (min-width: 981px) {
+  .panel {
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .table th,
+  .table td {
+    padding: 6px 0;
+  }
+
+  .caption {
+    line-height: 1.4;
   }
 }

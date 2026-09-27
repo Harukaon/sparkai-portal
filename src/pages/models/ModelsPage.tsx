@@ -117,7 +117,7 @@ export function ModelsPage() {
                     <tr key={model.model_name}>
                       <td>
                         <div className={styles.modelCell}>
-                          <ModelIcon modelId={model.model_name} name={model.model_name} />
+                          <ModelIcon icon={model.icon || vendors.find((vendor) => vendor.id === model.vendor_id)?.icon} name={model.model_name} />
                           <div className={styles.modelText}>
                             <strong>{model.model_name}</strong>
                             {model.description ? <span>{model.description}</span> : null}

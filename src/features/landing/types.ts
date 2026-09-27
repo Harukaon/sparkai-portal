@@ -16,6 +16,8 @@ export interface PriceRow {
   name: string
   /** 上游厂商 */
   provider: string
+  /** 图标名，和 New API 后台的写法一致，如 `Claude.Color` */
+  icon: string
   /** 官方直连的价格 */
   official: UnitPrice
   /** 走本站的价格 */

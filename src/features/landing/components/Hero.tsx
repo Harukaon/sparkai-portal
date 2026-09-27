@@ -1,4 +1,3 @@
-import { GeoBackdrop } from '@/shared/components/GeoBackdrop'
 import { PitchView } from '@/features/landing/components/PitchView'
 import { PricePanel } from '@/features/landing/components/PricePanel'
 import { StatsBar } from '@/features/landing/components/StatsBar'
@@ -14,8 +13,6 @@ export function Hero() {
   return (
     <div className={styles.hero}>
       <div className={styles.stage}>
-        <GeoBackdrop />
-
         <div className={`container ${styles.inner}`}>
           <PitchView />
           <PricePanel />

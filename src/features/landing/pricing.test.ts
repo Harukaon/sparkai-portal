@@ -24,6 +24,7 @@ describe('compareMonthlyCost', () => {
       id: 'a',
       name: 'A',
       provider: 'P',
+      icon: '',
       official: { input: 1, output: 10 }, // 折算 3.25
       ours: { input: 0.4, output: 4 }, // 折算 1.3
     },
@@ -31,6 +32,7 @@ describe('compareMonthlyCost', () => {
       id: 'b',
       name: 'B',
       provider: 'P',
+      icon: '',
       official: { input: 3, output: 15 }, // 折算 6
       ours: { input: 1.2, output: 6 }, // 折算 2.4
     },

@@ -68,7 +68,7 @@ export function PricePanel() {
             return (
               <tr key={row.id} className={styles.row}>
                 <th className={styles.modelCell} scope="row">
-                  <ModelIcon modelId={row.id} name={row.name} />
+                  <ModelIcon icon={row.icon} name={row.name} />
                   <span className={styles.modelText}>
                     <span className={styles.modelName}>{row.name}</span>
                     <span className={styles.modelProvider}>{row.provider}</span>
@@ -78,12 +78,6 @@ export function PricePanel() {
                 <td className={styles.priceCell}>
                   <span className={styles.officialPrice}>
                     {pricePair(row.official.input, row.official.output, rate)}
-                  </span>
-                  <span className={styles.barTrack} aria-hidden="true">
-                    <span
-                      className={styles.barOfficial}
-                      style={{ width: `${(officialBlended / maxBlended(officialBlended, ourBlended)) * 100}%` }}
-                    />
                   </span>
                 </td>
 
@@ -95,12 +89,6 @@ export function PricePanel() {
                     <span className={styles.discount}>
                       {Math.round((1 - ratio) * 100)}% 示例差额
                     </span>
-                  </span>
-                  <span className={styles.barTrack} aria-hidden="true">
-                    <span
-                      className={styles.barOurs}
-                      style={{ width: `${(ourBlended / maxBlended(officialBlended, ourBlended)) * 100}%` }}
-                    />
                   </span>
                 </td>
               </tr>
@@ -152,9 +140,4 @@ export function PricePanel() {
       </div>
     </div>
   )
-}
-
-/** 同一条基准：官方与本站里较大的那个，用来算进度条宽度 */
-function maxBlended(official: number, ours: number): number {
-  return Math.max(official, ours, 0.0001)
 }
