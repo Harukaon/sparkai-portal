@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '@/features/auth/auth-store'
 import { AuthCard } from '@/features/auth/components/AuthCard'
+import { OAuthButtons } from '@/features/auth/components/OAuthButtons'
+import { availableOAuthOptions } from '@/features/auth/oauth'
 import { RegisterForm } from '@/features/auth/components/RegisterForm'
 import { useSystemStatus } from '@/features/auth/hooks'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
@@ -32,15 +34,21 @@ export function RegisterPage() {
             <Alert type="error" showIcon title="暂时无法连接服务，请稍后重试" />
             <Button onClick={() => void system.refetch()}>重试</Button>
           </>
-        ) : system.data?.register_enabled && system.data.password_register_enabled ? (
-          <RegisterForm
-            status={system.data}
-            onRegistered={(username) =>
-              navigate('/login', { replace: true, state: { registered: true, username } })
-            }
-          />
+        ) : system.data?.register_enabled &&
+          (system.data.password_register_enabled || availableOAuthOptions(system.data).length > 0) ? (
+          <>
+            {system.data.password_register_enabled ? (
+              <RegisterForm
+                status={system.data}
+                onRegistered={(username) =>
+                  navigate('/login', { replace: true, state: { registered: true, username } })
+                }
+              />
+            ) : null}
+            <OAuthButtons status={system.data} returnTo="/console" action="继续" />
+          </>
         ) : (
-          <Alert type="info" showIcon title="当前未开放账号密码注册" description="请联系站点管理员。" />
+          <Alert type="info" showIcon title="当前未开放注册" description="请联系站点管理员。" />
         )}
       </AuthCard>
     </div>

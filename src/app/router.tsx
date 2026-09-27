@@ -4,6 +4,7 @@ import { SiteLayout } from '@/app/layout/SiteLayout'
 import { RequireAuth } from '@/features/auth/components/RequireAuth'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ConsolePage } from '@/pages/console/ConsolePage'
 import { HomePage } from '@/pages/landing/HomePage'
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'oauth/:provider', element: <OAuthCallbackPage /> },
       { path: 'console', element: <RequireAuth><ConsolePage /></RequireAuth> },
       { path: '*', element: <NotFoundPage /> },
     ],

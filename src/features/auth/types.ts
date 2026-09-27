@@ -66,6 +66,9 @@ export interface CustomOAuthProvider {
   slug: string
   name: string
   icon?: string
+  client_id: string
+  authorization_endpoint: string
+  scopes?: string
 }
 
 /** /api/status 里与登录注册、额度显示相关的系统开关 */
@@ -94,9 +97,15 @@ export interface SystemStatus {
   linuxdo_oauth: boolean
   linuxdo_client_id?: string
   telegram_oauth: boolean
+  telegram_oauth_configured?: boolean
   telegram_bot_name?: string
   wechat_login: boolean
+  wechat_qrcode?: string
+  wechat_qr_code?: string
+  wechat_qrcode_image_url?: string
+  wechat_qr_code_image_url?: string
   passkey_login: boolean
+  passkey_rp_ids?: string[]
   custom_oauth_providers?: CustomOAuthProvider[] | null
 
   user_agreement_enabled: boolean

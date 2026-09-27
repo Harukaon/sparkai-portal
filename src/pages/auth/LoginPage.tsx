@@ -4,8 +4,11 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 
 import { useAuthStore } from '@/features/auth/auth-store'
 import { AuthCard } from '@/features/auth/components/AuthCard'
+import { OAuthButtons } from '@/features/auth/components/OAuthButtons'
+import { PasskeyLoginButton } from '@/features/auth/components/PasskeyLoginButton'
 import { PasswordLoginForm } from '@/features/auth/components/PasswordLoginForm'
 import { TwoFactorForm } from '@/features/auth/components/TwoFactorForm'
+import { WeChatLogin } from '@/features/auth/components/WeChatLogin'
 import { useSystemStatus } from '@/features/auth/hooks'
 import { safeRedirect } from '@/features/auth/redirect'
 import { acceptLogin } from '@/features/auth/session'
@@ -69,9 +72,16 @@ export function LoginPage() {
             onAuthenticated={handleAuthenticated}
             onChallenge={setChallenge}
           />
-        ) : (
-          <Alert type="info" showIcon title="当前未开放密码登录" description="请联系站点管理员。" />
-        )}
+        ) : system.data?.password_login_enabled === false ? (
+          <Alert type="info" showIcon title="当前未开放密码登录，请使用下方的其他方式" />
+        ) : null}
+        {!challenge && system.data && !system.isError ? (
+          <>
+            <OAuthButtons status={system.data} returnTo={destination} />
+            <PasskeyLoginButton status={system.data} onAuthenticated={handleAuthenticated} />
+            <WeChatLogin status={system.data} onAuthenticated={handleAuthenticated} onChallenge={setChallenge} />
+          </>
+        ) : null}
       </AuthCard>
     </div>
   )
