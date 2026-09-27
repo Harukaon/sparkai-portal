@@ -1,0 +1,110 @@
+/*
+ * 背景装饰：几张超大圆环只露一段弧，加两片柔光。
+ *
+ * 关键约束：所有元素都必须完全落在容器内，任何越界都会把内容区撑出滚动条。
+ * 所以圆环用负的 left/top 定位时，尺寸要算好，确保右/下边不超出 100%。
+ */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ---------- 弧线 ---------- */
+
+.arc {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* 最外层大弧：从左下横跨到右上 */
+.arcOuter {
+  left: -18%;
+  top: 46%;
+  width: 132%;
+  aspect-ratio: 1.9;
+  border: 1.5px solid rgba(22, 21, 15, 0.08);
+  border-top-color: rgba(22, 21, 15, 0.14);
+  animation: arcDriftA 34s ease-in-out infinite;
+}
+
+/* 中层弧：靠右，和中层错开 */
+.arcMid {
+  left: 34%;
+  top: 8%;
+  width: 84%;
+  aspect-ratio: 1.3;
+  border: 1px solid rgba(22, 21, 15, 0.06);
+  border-bottom-color: rgba(22, 21, 15, 0.11);
+  animation: arcDriftB 42s ease-in-out infinite;
+}
+
+/* 内层弧：压在卡片下方，增加层次 */
+.arcInner {
+  left: 6%;
+  top: 30%;
+  width: 56%;
+  aspect-ratio: 1.1;
+  border: 1px solid rgba(22, 21, 15, 0.05);
+  animation: arcDriftA 50s ease-in-out infinite reverse;
+}
+
+@keyframes arcDriftA {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(-14px, -10px, 0);
+  }
+}
+
+@keyframes arcDriftB {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(12px, 14px, 0);
+  }
+}
+
+/* ---------- 柔光 ---------- */
+
+.glowBottom,
+.glowTop {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+
+.glowBottom {
+  left: 18%;
+  bottom: -46%;
+  width: 64%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(232, 163, 23, 0.1), transparent 70%);
+}
+
+.glowTop {
+  right: 6%;
+  top: -34%;
+  width: 46%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(22, 21, 15, 0.05), transparent 70%);
+}
+
+/* 窄屏：弧线会显得杂乱，只留最外层 */
+@media (max-width: 980px) {
+  .arcMid,
+  .arcInner,
+  .glowTop {
+    display: none;
+  }
+}

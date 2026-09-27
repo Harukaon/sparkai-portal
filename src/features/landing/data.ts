@@ -1,165 +1,49 @@
-import type { AccessStep, BillingExample, EndpointItem, ModelGroup } from '@/features/landing/types'
+import type { PriceRow, StatItem } from '@/features/landing/types'
 
 /*
- * ⚠️ 本文件目前是示例数据（mock），用于把界面搭出来。
- * 等后端接口就绪后，把这里的常量换成 `useQuery` 拉取的接口数据即可，
- * 组件与样式不需要改动（结构见 types.ts）。
+ * ⚠️ 示例数据：价格是占位的，定价确认后替换。
+ * 单位统一为「美元 / 百万 token」，与各厂商官网口径一致。
+ * 接后端接口时，把这里换成 `useQuery` 拉取的数据即可（结构见 types.ts）。
  */
-
-/** 能做什么：一行一条，标题短、说明具体 */
-export const CAPABILITIES = [
+export const PRICE_ROWS: PriceRow[] = [
   {
-    title: '协议零改动',
-    detail: '兼容 OpenAI 与 Anthropic 两套协议，现有 SDK 只需换 base_url，业务代码一行不动。',
+    id: 'gpt-5.1',
+    name: 'GPT-5.1',
+    provider: 'OpenAI',
+    official: { input: 1.25, output: 10 },
+    ours: { input: 0.45, output: 3.6 },
   },
   {
-    title: '一个密钥用全部模型',
-    detail: '不用为每个厂商单独注册、单独充值、单独记账，一套密钥覆盖全部模型。',
+    id: 'claude-sonnet-4-5',
+    name: 'Claude Sonnet 4.5',
+    provider: 'Anthropic',
+    official: { input: 3, output: 15 },
+    ours: { input: 1.1, output: 5.4 },
   },
   {
-    title: '线路自动切换',
-    detail: '单个上游异常时自动换线重试，请求不会因为某条链路抖动而直接失败。',
+    id: 'deepseek-v3.2',
+    name: 'DeepSeek V3.2',
+    provider: 'DeepSeek',
+    official: { input: 0.27, output: 1.1 },
+    ours: { input: 0.1, output: 0.4 },
   },
   {
-    title: '用量看得见',
-    detail: '每次请求的 token、费用、耗时都有明细，账单可以逐笔核对。',
-  },
-] as const
-
-/** 支持模型（示例数据） */
-export const MODEL_GROUPS: ModelGroup[] = [
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    models: [
-      {
-        id: 'gpt-5.1',
-        name: 'GPT-5.1',
-        contextWindow: 400000,
-        endpoint: 'openai',
-        tag: '综合强',
-      },
-      {
-        id: 'gpt-5.1-mini',
-        name: 'GPT-5.1 mini',
-        contextWindow: 400000,
-        endpoint: 'openai',
-        tag: '便宜快',
-      },
-      {
-        id: 'gpt-5.1-codex',
-        name: 'GPT-5.1 Codex',
-        contextWindow: 400000,
-        endpoint: 'openai',
-        tag: '写代码',
-      },
-    ],
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    models: [
-      {
-        id: 'claude-sonnet-4-5',
-        name: 'Claude Sonnet 4.5',
-        contextWindow: 200000,
-        endpoint: 'anthropic',
-        tag: '综合强',
-      },
-      {
-        id: 'claude-haiku-4-5',
-        name: 'Claude Haiku 4.5',
-        contextWindow: 200000,
-        endpoint: 'anthropic',
-        tag: '便宜快',
-      },
-    ],
-  },
-  {
-    id: 'others',
-    name: '其他',
-    models: [
-      {
-        id: 'deepseek-v3.2',
-        name: 'DeepSeek V3.2',
-        contextWindow: 128000,
-        endpoint: 'openai',
-        tag: '性价比',
-      },
-      {
-        id: 'kimi-k2',
-        name: 'Kimi K2',
-        contextWindow: 256000,
-        endpoint: 'openai',
-      },
-      {
-        id: 'glm-4.6',
-        name: 'GLM-4.6',
-        contextWindow: 200000,
-        endpoint: 'openai',
-      },
-      {
-        id: 'qwen3-max',
-        name: 'Qwen3 Max',
-        contextWindow: 256000,
-        endpoint: 'openai',
-      },
-    ],
+    id: 'glm-4.6',
+    name: 'GLM-4.6',
+    provider: '智谱',
+    official: { input: 0.6, output: 2.2 },
+    ours: { input: 0.22, output: 0.8 },
   },
 ]
 
-/** 计费规则 */
-export const PRICING_RULES = [
-  '只按用量计费，没有月费、没有最低消费。',
-  '输入（提问）与输出（回答）分别计价，价格按百万 token 计算。',
-  '请求失败、上游报错时不扣费。',
-  '余额不过期，用不完一直留着。',
-] as const
-
-/** 一次真实请求的花费怎么算（示例数字） */
-export const BILLING_EXAMPLE: BillingExample = {
-  model: 'GPT-5.1',
-  inputTokens: 12000,
-  outputTokens: 800,
-  inputPrice: 1.25,
-  outputPrice: 10,
-}
-
-/** 接入步骤 */
-export const ACCESS_STEPS: AccessStep[] = [
-  {
-    title: '创建密钥',
-    description: '在控制台点一下就能生成，密钥形如 sk-xxxx，可随时吊销重发。',
-  },
-  {
-    title: '改一行地址',
-    description: '把客户端的 base_url 换成下面的接入地址，密钥填刚生成的，其余保持原样。',
-  },
-  {
-    title: '发一个请求',
-    description: '用官方 SDK 或 curl 都能直接跑通，返回结构与官方完全一致。',
-    code: `curl https://api.your-domain.com/v1/chat/completions \\
-  -H "Authorization: Bearer $RELAY_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model":"gpt-5.1","messages":[{"role":"user","content":"你好"}]}'`,
-  },
-]
-
-/** 接入地址（示例域名，上线前替换成真实域名） */
-export const ENDPOINTS: EndpointItem[] = [
-  {
-    label: 'OpenAI 兼容',
-    value: 'https://api.your-domain.com/v1',
-    hint: '给 OpenAI SDK、LangChain、各类客户端用',
-  },
-  {
-    label: 'Anthropic 兼容',
-    value: 'https://api.your-domain.com',
-    hint: '给 Claude 官方 SDK、Claude Code 用',
-  },
-  {
-    label: '模型清单',
-    value: 'https://api.your-domain.com/v1/models',
-    hint: '用于拉取当前可用模型',
-  },
+/**
+ * ⚠️ 底部数据带。
+ * 「10,000+ 开发者的选择」「99.9% 服务可用性」是对外承诺，上线前必须确认能兑现，
+ * 拿不准就先删掉对应条目 —— 写上去的数字是要负责的。
+ */
+export const STATS: StatItem[] = [
+  { icon: 'users', value: '10,000+', label: '开发者的选择' },
+  { icon: 'cube', value: '主流模型全覆盖', label: 'OpenAI · Anthropic · DeepSeek · 智谱等' },
+  { icon: 'bolt', value: '99.9%', label: '服务可用性' },
+  { icon: 'globe', value: '全球加速', label: '更快 · 更稳定 · 更可靠' },
 ]

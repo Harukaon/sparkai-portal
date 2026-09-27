@@ -1,0 +1,9 @@
+.main {
+  /* 占满页头之后的剩余高度，让首页能在视口内垂直居中 */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* 窄屏/矮屏放不下时在这里内部滚动，整页永远不出滚动条 */
+  overflow-y: auto;
+}

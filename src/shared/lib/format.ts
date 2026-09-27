@@ -22,18 +22,19 @@ export function formatCompact(value: number): string {
   return compactFormatter.format(value)
 }
 
-/** 金额：0.0123 → ¥0.0123（小额保留 4 位，避免显示成 0） */
-export function formatMoney(value: number, currency = '¥'): string {
-  const digits = Math.abs(value) > 0 && Math.abs(value) < 1 ? 4 : 2
-  return `${currency}${value.toFixed(digits)}`
+/**
+ * 金额：带千分位。
+ * digits 省略时自动判断 —— 小于 1 元的保留 4 位，避免显示成 0。
+ */
+export function formatMoney(value: number, currency = '¥', digits?: number): string {
+  const resolved = digits ?? (Math.abs(value) > 0 && Math.abs(value) < 1 ? 4 : 2)
+  const [integer, decimal] = value.toFixed(resolved).split('.')
+  const grouped = Number(integer).toLocaleString('zh-CN')
+
+  return decimal === undefined ? `${currency}${grouped}` : `${currency}${grouped}.${decimal}`
 }
 
 /** 百分比：0.8123 → 81.2% */
 export function formatPercent(ratio: number, digits = 1): string {
   return `${(ratio * 100).toFixed(digits)}%`
-}
-
-/** 单价展示：每百万 token 的价格，如 1.5 → $1.50 / M */
-export function formatUnitPrice(value: number, unit = 'M', symbol = '$'): string {
-  return `${symbol}${value.toFixed(2)} / ${unit}`
 }

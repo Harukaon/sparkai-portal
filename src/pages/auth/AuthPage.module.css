@@ -1,0 +1,35 @@
+.page {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  isolation: isolate;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, var(--color-surface), var(--color-canvas) 70%);
+}
+
+.loading {
+  min-height: 360px;
+}
+
+.link {
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.note {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}

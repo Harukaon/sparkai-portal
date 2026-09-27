@@ -1,9 +1,15 @@
 import { Outlet } from 'react-router-dom'
 
-import { SiteFooter } from '@/app/layout/SiteFooter'
 import { SiteHeader } from '@/app/layout/SiteHeader'
 
-/** 站点骨架：页头 + 内容 + 页脚，所有前台页面都套在这一层里 */
+import styles from './SiteLayout.module.css'
+
+/**
+ * 站点骨架：只有页头 + 内容区。
+ *
+ * 首页是一屏锁屏版面，所以这里不设页脚，内容区自己占满剩余高度。
+ * 以后加控制台等多内容页面时，把 footer 加到 main 之后即可（flex 布局不会因此塌掉）。
+ */
 export function SiteLayout() {
   return (
     <>
@@ -11,10 +17,9 @@ export function SiteLayout() {
         跳到主要内容
       </a>
       <SiteHeader />
-      <main id="main" style={{ flex: 1 }}>
+      <main id="main" className={styles.main}>
         <Outlet />
       </main>
-      <SiteFooter />
     </>
   )
 }

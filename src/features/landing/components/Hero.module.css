@@ -1,135 +1,45 @@
+/* 一屏两段：主区撑满剩余高度，底部数据带贴在下面 */
+
 .hero {
-  padding-top: var(--space-20);
-  padding-bottom: var(--space-16);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  display: grid;
+  align-content: center;
+  min-height: 0;
+  padding-block: clamp(24px, 3.5vh, 48px);
+  overflow: hidden;
 }
 
 .inner {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: var(--space-16);
-  align-items: end;
-}
-
-/* ---------- 左侧文案 ---------- */
-
-.copy {
-  min-width: 0;
-}
-
-.title {
-  max-width: 16ch;
-  font-size: var(--text-display);
-  font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.03em;
-}
-
-.lead {
-  max-width: 46ch;
-  margin-top: var(--space-6);
-  color: var(--color-ink-muted);
-  font-size: var(--text-lg);
-  line-height: 1.6;
-}
-
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-10);
-  margin: var(--space-12) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.fact {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.factValue {
-  font-size: var(--text-base);
-  font-weight: 600;
-}
-
-.factLabel {
-  color: var(--color-ink-subtle);
-  font-size: var(--text-xs);
-}
-
-/* ---------- 右侧接入地址卡 ---------- */
-
-.panel {
-  min-width: 0;
-  padding: var(--space-6);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-md);
-}
-
-.panelHead {
-  display: flex;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-line);
+  gap: clamp(32px, 4.5vw, 72px);
 }
 
-.panelTitle {
-  font-size: var(--text-sm);
-  font-weight: 600;
+.inner > * {
+  min-width: 0;
 }
 
-.panelBadge {
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-accent-soft);
-  color: var(--color-accent-text);
-  font-size: var(--text-xs);
-}
+/* 窄屏：转单栏，放不下时在内容区内滚动，整页仍然不出滚动条 */
+@media (max-width: 980px) {
+  .stage {
+    align-content: start;
+    padding-block: var(--space-6) var(--space-10);
+  }
 
-.panelBody {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding-top: var(--space-5);
-}
-
-.panelLabel {
-  color: var(--color-ink-subtle);
-  font-size: var(--text-xs);
-}
-
-.panelCode {
-  display: block;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-xs);
-  background-color: var(--color-surface-sunken);
-  font-size: var(--text-sm);
-  word-break: break-all;
-}
-
-.panelFoot {
-  margin-top: var(--space-5);
-  color: var(--color-ink-subtle);
-  font-size: var(--text-xs);
-}
-
-@media (max-width: 960px) {
   .inner {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-10);
-    align-items: start;
-  }
-
-  .hero {
-    padding-top: var(--space-12);
-  }
-
-  .facts {
     gap: var(--space-8);
-    margin-top: var(--space-8);
   }
 }

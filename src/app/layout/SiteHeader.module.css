@@ -1,9 +1,8 @@
 .header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
   border-bottom: 1px solid var(--color-line);
-  background-color: rgba(251, 249, 245, 0.82);
+  background-color: rgba(251, 249, 245, 0.86);
   backdrop-filter: blur(12px) saturate(140%);
 }
 
@@ -18,19 +17,20 @@
 
 .brand {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: var(--space-3);
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
   background-color: var(--color-ink);
-  box-shadow: inset -6px -6px 0 0 var(--color-accent);
+  box-shadow: inset -7px -7px 0 0 var(--color-surface-sunken);
 }
 
 .brandName {
@@ -43,12 +43,18 @@
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-8);
+  justify-content: center;
+  gap: clamp(var(--space-4), 2.4vw, var(--space-8));
 }
 
 .navLink {
+  padding: var(--space-1) 0;
+  border: none;
+  background: none;
   color: var(--color-ink-muted);
+  font-family: inherit;
   font-size: var(--text-sm);
+  cursor: pointer;
   transition: color var(--duration-fast) var(--ease-out);
 }
 
@@ -60,29 +66,28 @@
 
 .actions {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
-.cta {
-  display: inline-flex;
+.login {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
 }
 
-/* 小屏：隐藏横向导航，改用下拉菜单 */
-.menuOnly {
-  display: none;
+.login:hover {
+  color: var(--color-ink) !important;
+  background-color: transparent !important;
 }
 
-@media (max-width: 860px) {
+/* 窄屏：先收起导航，保留品牌与主按钮（导航后续放进抽屉） */
+@media (max-width: 1080px) {
   .nav {
     display: none;
   }
 
   .inner {
     justify-content: space-between;
-  }
-
-  .menuOnly {
-    display: inline-flex;
   }
 }

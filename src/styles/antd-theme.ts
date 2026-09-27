@@ -12,8 +12,8 @@ export const antdTheme: ThemeConfig = {
   algorithm: theme.defaultAlgorithm,
   // antd 6 默认使用 CSS 变量模式，无需显式开启
   token: {
-    colorPrimary: '#e8a317',
-    colorLink: '#9a6b06',
+    colorPrimary: '#16150f',
+    colorLink: '#16150f',
     colorSuccess: '#2f7a52',
     colorWarning: '#b4761b',
     colorError: '#b3452f',
@@ -53,10 +53,11 @@ export const antdTheme: ThemeConfig = {
       headerPadding: 0,
     },
     Button: {
-      // 黄底必须配深色字：白色字放在 #E8A317 上对比度约 2.2:1，读不清
-      primaryColor: '#1a1408',
+      // 主色是近黑，所以按钮上的文字要用浅色（之前黄底是深色字）
+      primaryColor: '#fbf9f5',
       primaryShadow: 'none',
       fontWeight: 500,
+      defaultBorderColor: '#ddd6c8',
     },
   },
 }

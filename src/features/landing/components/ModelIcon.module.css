@@ -1,0 +1,33 @@
+.icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink);
+}
+
+/* 各家品牌色只用在图标底色上，不参与页面整体配色 */
+.icon[data-model='gpt-5.1'] {
+  background-color: var(--color-ink);
+  color: var(--color-ink-inverse);
+}
+
+.icon[data-model='deepseek-v3.2'] {
+  background-color: #eaf1fb;
+  color: #2f6bd8;
+}
+
+.icon[data-model='glm-4.6'] {
+  background-color: #eef3ff;
+  color: #3b5bdb;
+}
+
+.letter {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}

@@ -9,6 +9,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* 首页是一屏版面，不允许整页滚动；各页面内部需要滚动时，自己设 overflow */
+  overflow: hidden;
 }
 
 body {
@@ -24,8 +26,21 @@ body {
 
 #root {
   display: flex;
-  min-height: 100dvh;
+  height: 100dvh;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/*
+ * antd 的 <App> 组件会在根节点下插一层 div（.ant-app），
+ * 它默认不撑满高度，会截断下面的 flex 布局（首页就居不中了）。
+ * 这里让它作为透明的一层继续向下传递高度。
+ */
+#root > .ant-app {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 h1,

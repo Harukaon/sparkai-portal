@@ -2,19 +2,22 @@
  * 全局设计令牌 —— 本项目所有颜色 / 字号 / 间距 / 圆角 / 阴影的唯一出处。
  * 改外观只改这个文件；业务样式里一律用 var(--xxx)，不要写死色值。
  *
- * 配色：暖白底 + 近黑墨色 + 琥珀金（白 / 黑 / 黄），三条规则：
- *   1. 底色用暖白 #FBF9F5，不用纯白 —— 纯白配近黑对比过硬，久看眼睛累；
- *   2. 文字用近黑 #16150F，不用纯黑 —— 纯黑在屏幕上显得生硬、有压迫感；
- *   3. 黄色只做点睛（按钮、选中、重点数字、强调线），不做大面积背景，
- *      更不能配白字 —— 黄底白字对比度不足，直接读不清。
+ * 配色：暖白底 + 近黑主色 + 灰阶。
+ *   1. 页面底 #FBF9F5（暖白），卡片纯白，靠明度差分层，不堆重阴影；
+ *   2. 主按钮、进度条、选中态一律近黑 #16150F，配浅色文字；
+ *   3. 颜色只用来表达状态（成功 / 繁忙 / 维护），不参与装饰。
+ *
+ * 想换回琥珀金主色：把下面「主色」那一组换成
+ *   accent #E8A317 / hover #D49412 / soft #FDF3DC / text #9A6B06 / ink #1A1408，
+ * 同时把 styles/antd-theme.ts 里 Button.primaryColor 改成 #1A1408。
  */
 
 :root {
   /* ---------- 表面 ---------- */
   --color-canvas: #fbf9f5; /* 页面底 */
   --color-surface: #ffffff; /* 卡片、浮层 */
-  --color-surface-sunken: #f5f1e9; /* 内嵌区域、代码块 */
-  --color-surface-inverse: #14120c; /* 深色区块、页脚 */
+  --color-surface-sunken: #f4f2ee; /* 内嵌区域、代码块、灰底块 */
+  --color-surface-inverse: #14120c; /* 深色区块 */
 
   /* ---------- 文字 ---------- */
   --color-ink: #16150f; /* 正文与标题 */
@@ -27,12 +30,12 @@
   --color-line-strong: #ddd6c8; /* 需要强调的边界 */
   --color-line-inverse: #2e2a1e; /* 深色底上的分隔线 */
 
-  /* ---------- 琥珀金（主色）---------- */
-  --color-accent: #e8a317; /* 主按钮、选中、强调 */
-  --color-accent-hover: #d49412;
-  --color-accent-soft: #fdf3dc; /* 浅底强调（黄底配深色字） */
-  --color-accent-text: #9a6b06; /* 浅底上的黄色文字，保证对比度 */
-  --color-accent-ink: #1a1408; /* 黄底上应使用的文字色 */
+  /* ---------- 主色（近黑）---------- */
+  --color-accent: #16150f; /* 主按钮、进度条、选中 */
+  --color-accent-hover: #37322a;
+  --color-accent-soft: #f1efea; /* 浅底强调（浅灰底 + 深色字） */
+  --color-accent-text: #55504a; /* 浅底上的文字 */
+  --color-accent-ink: #fbf9f5; /* 主色底上的文字 */
 
   /* ---------- 语义色（克制使用）---------- */
   --color-success: #2f7a52;
@@ -58,7 +61,6 @@
   --text-lg: 1.125rem; /* 18px   小标题 */
   --text-xl: 1.375rem; /* 22px   区块标题 */
   --text-2xl: 1.75rem; /* 28px   页面标题 */
-  --text-display: clamp(2.25rem, 5vw, 3.75rem); /* 首屏标题，随视口伸缩 */
 
   /* ---------- 间距（8 的倍数）---------- */
   --space-1: 4px;
@@ -81,14 +83,13 @@
   --radius-lg: 20px;
   --radius-pill: 999px;
 
-  /* ---------- 阴影（浅、克制，靠线条分层而非重投影）---------- */
+  /* ---------- 阴影（浅、克制）---------- */
   --shadow-sm: 0 1px 2px rgba(22, 21, 15, 0.05);
   --shadow-md: 0 10px 30px -14px rgba(22, 21, 15, 0.18);
   --shadow-lg: 0 28px 60px -24px rgba(22, 21, 15, 0.22);
 
   /* ---------- 布局 ---------- */
-  --container: 1120px;
-  --container-narrow: 760px;
+  --container: 1280px;
   --header-height: 64px;
 
   /* ---------- 动效 ---------- */
