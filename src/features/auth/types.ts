@@ -114,5 +114,11 @@ export interface SystemStatus {
   /** 多少内部额度单位等于 1 美元 */
   quota_per_unit: number
   display_in_currency: boolean
+  /** USD / CNY / TOKENS / CUSTOM：后台决定余额按什么单位显示 */
   quota_display_type?: string
+  usd_exchange_rate?: number
+  custom_currency_symbol?: string
+  custom_currency_exchange_rate?: number
+  /** 是否记录按小时汇总的用量数据（总览图表用） */
+  enable_data_export?: boolean
 }

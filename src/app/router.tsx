@@ -1,12 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom'
 
+import { ConsoleLayout } from '@/app/layout/ConsoleLayout'
 import { SiteLayout } from '@/app/layout/SiteLayout'
 import { RequireAuth } from '@/features/auth/components/RequireAuth'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { ConsolePage } from '@/pages/console/ConsolePage'
+import { LogsPage } from '@/pages/console/LogsPage'
+import { OverviewPage } from '@/pages/console/OverviewPage'
 import { HomePage } from '@/pages/landing/HomePage'
 import { ModelsPage } from '@/pages/models/ModelsPage'
 
@@ -24,7 +26,14 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'oauth/:provider', element: <OAuthCallbackPage /> },
-      { path: 'console', element: <RequireAuth><ConsolePage /></RequireAuth> },
+      {
+        path: 'console',
+        element: <RequireAuth><ConsoleLayout /></RequireAuth>,
+        children: [
+          { index: true, element: <OverviewPage /> },
+          { path: 'logs', element: <LogsPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

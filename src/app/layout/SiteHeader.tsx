@@ -31,7 +31,8 @@ export function SiteHeader() {
     setLoggingOut(true)
     try {
       await logout()
-      queryClient.removeQueries({ queryKey: ['current-user'] })
+      // 退出后清掉所有缓存，避免下一个登录的人看到上一个账号的数据
+      queryClient.clear()
       navigate('/')
       message.success('已退出登录')
     } catch (error: unknown) {

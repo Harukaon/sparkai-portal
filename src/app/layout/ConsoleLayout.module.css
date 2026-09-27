@@ -1,0 +1,113 @@
+.shell {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  gap: var(--space-10);
+  width: min(100%, var(--container));
+  margin-inline: auto;
+  padding: var(--space-10) var(--space-6) var(--space-20);
+}
+
+.side {
+  position: sticky;
+  top: var(--space-6);
+  align-self: start;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+  font-weight: 600;
+}
+
+.accountText {
+  display: grid;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.accountText strong {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountText span {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.nav {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-ink);
+}
+
+.active,
+.active:hover {
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+}
+
+.content {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-4) var(--space-16);
+  }
+
+  .side {
+    position: static;
+  }
+
+  .account {
+    display: none;
+  }
+
+  .nav {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+  }
+
+  .link {
+    flex: none;
+  }
+}
