@@ -1,4 +1,4 @@
-import { DashboardOutlined, KeyOutlined, ProfileOutlined } from '@ant-design/icons'
+import { DashboardOutlined, KeyOutlined, ProfileOutlined, WalletOutlined } from '@ant-design/icons'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
@@ -18,6 +18,7 @@ const CONSOLE_NAV: ConsoleNavItem[] = [
   { to: '/console', label: '总览', icon: <DashboardOutlined />, end: true },
   { to: '/console/keys', label: 'API 密钥', icon: <KeyOutlined /> },
   { to: '/console/logs', label: '请求记录', icon: <ProfileOutlined /> },
+  { to: '/console/wallet', label: '充值与账单', icon: <WalletOutlined /> },
 ]
 
 export function ConsoleLayout() {

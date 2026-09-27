@@ -10,6 +10,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { KeysPage } from '@/pages/console/KeysPage'
 import { LogsPage } from '@/pages/console/LogsPage'
 import { OverviewPage } from '@/pages/console/OverviewPage'
+import { WalletPage } from '@/pages/console/WalletPage'
 import { HomePage } from '@/pages/landing/HomePage'
 import { ModelsPage } from '@/pages/models/ModelsPage'
 
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { index: true, element: <OverviewPage /> },
           { path: 'keys', element: <KeysPage /> },
           { path: 'logs', element: <LogsPage /> },
+          { path: 'wallet', element: <WalletPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
