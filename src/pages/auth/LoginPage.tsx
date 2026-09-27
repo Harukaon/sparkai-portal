@@ -53,7 +53,7 @@ export function LoginPage() {
           <Alert type="success" showIcon title="注册成功，请登录" />
         ) : null}
         {system.isPending || authStatus === 'unknown' ? (
-          <div className={styles.loading}><Spin tip="正在连接..." /></div>
+          <div className={styles.loading}><Spin description="正在连接..." /></div>
         ) : system.isError ? (
           <>
             <Alert type="error" showIcon title="暂时无法连接服务，请稍后重试" />

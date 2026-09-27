@@ -28,7 +28,7 @@ export function RegisterPage() {
         footer={<>已有账号？<Link to="/login">去登录</Link></>}
       >
         {system.isPending || authStatus === 'unknown' ? (
-          <div className={styles.loading}><Spin tip="正在连接..." /></div>
+          <div className={styles.loading}><Spin description="正在连接..." /></div>
         ) : system.isError ? (
           <>
             <Alert type="error" showIcon title="暂时无法连接服务，请稍后重试" />

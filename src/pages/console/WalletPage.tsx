@@ -1,5 +1,5 @@
 import { GiftOutlined, LinkOutlined } from '@ant-design/icons'
-import { App as AntdApp, Alert, Button, Input, InputNumber, Radio, Skeleton, Table, Tag, Typography } from 'antd'
+import { App as AntdApp, Alert, Button, Input, InputNumber, Radio, Skeleton, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -118,16 +118,18 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
                 })}
               </div>
             ) : null}
-            <InputNumber
-              className={styles.amountInput}
-              min={1}
-              precision={0}
-              value={amount}
-              onChange={(value) => setAmount(typeof value === 'number' ? value : null)}
-              placeholder="自定义数量"
-              addonAfter={format.unit === 'TOKENS' ? '额度' : '美元额度'}
-              aria-label="自定义充值数量"
-            />
+            <Space.Compact className={styles.amountInput}>
+              <InputNumber
+                min={1}
+                precision={0}
+                value={amount}
+                onChange={(value) => setAmount(typeof value === 'number' ? value : null)}
+                placeholder="自定义数量"
+                aria-label="自定义充值数量"
+                style={{ width: '100%' }}
+              />
+              <Space.Addon>{format.unit === 'TOKENS' ? '额度' : '美元额度'}</Space.Addon>
+            </Space.Compact>
             {method ? <span className={styles.hint}>{method.name} 最少充值 {amountLabel(method.min, format)}</span> : null}
           </div>
 

@@ -85,7 +85,7 @@ export function OAuthCallbackPage() {
         ) : message || invalidMessage ? (
           <Alert type="error" showIcon title={message || invalidMessage} action={<Link to="/login"><Button size="small">重试</Button></Link>} />
         ) : (
-          <div className={styles.loading}><Spin tip="正在确认授权..." /></div>
+          <div className={styles.loading}><Spin description="正在确认授权..." /></div>
         )}
       </AuthCard>
     </div>
