@@ -15,11 +15,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: Number(env.VITE_DEV_PORT ?? 5273),
-      // 本地开发时把接口请求转给后端，避免跨域。
+      // 本地开发时把接口请求转给 New API，前后端同源，登录用的刷新 Cookie 才能正常收发。
       // 后端地址通过 .env.local 的 VITE_PROXY_TARGET 覆盖。
       proxy: {
         '/api': {
-          target: env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:8787',
+          target: env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:3000',
           changeOrigin: true,
         },
       },
