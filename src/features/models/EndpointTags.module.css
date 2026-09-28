@@ -22,3 +22,11 @@
   padding-inline: var(--space-2);
   font-size: var(--text-xs);
 }
+
+/* BrandIcon 外层默认是 inline，撑出基线空隙；改为块级并顶满 */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}

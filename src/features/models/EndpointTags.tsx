@@ -36,7 +36,7 @@ export function EndpointTags({ endpoints }: { endpoints: string[] }) {
         return (
           <Tooltip key={endpoint} title={endpointLabel(endpoint)}>
             <span className={styles.chip} role="img" aria-label={endpointLabel(endpoint)}>
-              <BrandIcon icon={brand} fallback={endpoint.slice(0, 1)} size={16} />
+              <BrandIcon icon={brand} fallback={endpoint.slice(0, 1)} size={16} className={styles.brand} />
             </span>
           </Tooltip>
         )
