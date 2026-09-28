@@ -43,7 +43,8 @@
   display: flex;
   flex: 1;
   align-items: center;
-  justify-content: center;
+  /* 导航项少，靠右和登录按钮放一起 */
+  justify-content: flex-end;
   gap: clamp(var(--space-4), 2.4vw, var(--space-8));
 }
 
@@ -124,7 +125,7 @@
 }
 
 /* 窄屏改为抽屉导航，保留品牌与主按钮。 */
-@media (max-width: 1080px) {
+@media (max-width: 760px) {
   .nav {
     display: none;
   }
