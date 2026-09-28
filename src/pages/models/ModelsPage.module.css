@@ -48,6 +48,20 @@
   font-size: var(--text-sm);
 }
 
+.officialControl {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.officialControl > span {
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+}
+
+.officialAlert { margin-bottom: var(--space-4); }
+
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--color-line);
@@ -57,7 +71,7 @@
 
 .table {
   width: 100%;
-  min-width: 820px;
+  min-width: 900px;
   border-collapse: collapse;
   text-align: left;
 }

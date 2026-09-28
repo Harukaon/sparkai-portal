@@ -1,0 +1,84 @@
+name: Build and deploy portal
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-portal
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.6.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Check whether deployment is configured
+        id: deploy_secret
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          if [[ -n "$DEPLOY_SSH_KEY" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify
+        run: pnpm verify
+
+      - name: Build
+        run: pnpm build
+
+      - name: Explain missing deployment key
+        if: ${{ steps.deploy_secret.outputs.configured != 'true' }}
+        run: echo '::warning::Build passed, but deployment was skipped. Add the DEPLOY_SSH_KEY repository secret to enable push-to-deploy.'
+
+      - name: Configure SSH
+        if: ${{ steps.deploy_secret.outputs.configured == 'true' }}
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          eval "$(ssh-agent -s)"
+          printf '%s\n' "$DEPLOY_SSH_KEY" | ssh-add -
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          ssh-keyscan -p 30680 207.57.131.51 >> ~/.ssh/known_hosts
+
+      - name: Deploy release and atomically switch live site
+        if: ${{ steps.deploy_secret.outputs.configured == 'true' }}
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          SITE=/opt/1panel/apps/openresty/openresty/www/sites/ai.sparkai.si
+          RELEASE="${RUN_ID}-${SOURCE_SHA::8}"
+          REMOTE="sparkai-deploy@207.57.131.51"
+          SSH='ssh -p 30680 -o BatchMode=yes'
+          $SSH "$REMOTE" "mkdir -p '$SITE/releases/$RELEASE'"
+          rsync -rltzc --delete -e "ssh -p 30680 -o BatchMode=yes" dist/ "$REMOTE:$SITE/releases/$RELEASE/"
+          $SSH "$REMOTE" "set -e; cd '$SITE/releases/$RELEASE'; for f in \$(grep -o 'assets/[^\"]*' index.html); do test -s \"\$f\"; done; find . -type d -exec chmod 755 {} +; find . -type f -exec chmod 644 {} +; cd '$SITE'; ln -sfn 'releases/$RELEASE' current.next; mv -Tf current.next current"
+          curl --fail --silent --show-error https://ai.sparkai.si/ >/dev/null
+          echo "Deployed $RELEASE"

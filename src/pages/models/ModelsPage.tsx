@@ -4,12 +4,15 @@ import { useMemo, useState } from 'react'
 
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
+import { officialPriceFor, useOfficialPricing } from '@/features/models/official-pricing'
 import { intelligenceOf, sortByIntelligence, useIntelligence } from '@/features/models/intelligence'
-import { formatUsdAsCny, useQuotaFormat } from '@/features/console/quota'
+import { formatUsdAsCny, usdExchangeRate, useQuotaFormat } from '@/features/console/quota'
+import { useSystemStatus } from '@/features/auth/hooks'
 import type { QuotaFormat } from '@/features/console/quota'
 import { matchesGroup, modelPrice } from '@/features/models/pricing'
 import type { ModelPrice, PricingModel, PricingVendor } from '@/features/models/pricing'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { formatMoney } from '@/shared/lib/format'
 import { useT } from '@/shared/i18n'
 import { EndpointTags } from '@/features/models/EndpointTags'
 
@@ -81,6 +84,10 @@ export function ModelsPage() {
   const { message } = AntdApp.useApp()
   const pricing = usePricing()
   const format = useQuotaFormat()
+  const systemStatus = useSystemStatus()
+  const officialRate = usdExchangeRate(systemStatus.data)
+  const [showOfficial, setShowOfficial] = useState(false)
+  const officialPricing = useOfficialPricing(showOfficial)
   const [keyword, setKeyword] = useState('')
   const [groupChoice, setGroupChoice] = useState('all')
   const [vendorChoice, setVendorChoice] = useState('all')
@@ -168,6 +175,13 @@ export function ModelsPage() {
             />
           </div>
           {group === 'auto' ? <p className={styles.hint}>{t('自动分组会在调用时选定，最终价格以实际命中的分组为准。', 'Auto groups are chosen at call time; the final price follows the group actually matched.')}</p> : null}
+          <div className={styles.officialControl}>
+            <Button type={showOfficial ? 'primary' : 'default'} onClick={() => setShowOfficial((shown) => !shown)} aria-pressed={showOfficial}>
+              {showOfficial ? t('收起官方价', 'Hide reference prices') : t('对比官方', 'Compare official prices')}
+            </Button>
+            {showOfficial && officialPricing.data ? <span>{t(`参考来源：models.dev · 更新于 ${new Date(officialPricing.data.updatedAt).toLocaleDateString('zh-CN')}`, `Reference: models.dev · Updated ${new Date(officialPricing.data.updatedAt).toLocaleDateString('en-US')}`)}</span> : null}
+          </div>
+          {showOfficial && officialPricing.isError ? <Alert className={styles.officialAlert} type="warning" showIcon title={t('官方参考价暂时无法读取', 'Reference prices are temporarily unavailable')} /> : null}
           {visible.length === 0 ? (
             <div className={styles.empty}>
               <Empty description={data.data.length ? t('没有符合筛选条件的模型，换个条件试试', 'No models match these filters — try different ones') : t('当前还没有开放的模型，请稍后再来查看', 'No models are open yet — check back later')} />
@@ -175,7 +189,7 @@ export function ModelsPage() {
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th scope="col">{t('模型', 'Model')}</th><th scope="col">{t('智力', 'IQ')}</th><th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th><th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th></tr></thead>
+                <thead><tr><th scope="col">{t('模型', 'Model')}</th><th scope="col">{t('智力', 'IQ')}</th><th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th>{showOfficial ? <th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th> : null}{showOfficial ? <th scope="col">{t('models.dev 参考价', 'models.dev reference')}<span className={styles.thUnit}>{t('人民币 / 百万 token', 'CNY / M tokens')}</span></th> : <th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th>}</tr></thead>
                 <tbody>
                   {visible.map((model) => (
                     <tr key={model.model_name}>
@@ -212,13 +226,25 @@ export function ModelsPage() {
                         <PriceLabel format={format} t={t} price={modelPrice(model, data.group_ratio?.[group])} />
                       )}
                       </td>
+                      {showOfficial ? <td className={styles.price}>
+                        {(() => {
+                          const entry = officialPriceFor(model.model_name, officialPricing.data?.models ?? [])
+                          const official = entry?.prices.modelsDev
+                          return official?.input != null && official.output != null ? (
+                            <dl className={styles.priceStack}>
+                              <dt>{t('输入', 'Input')}</dt><dd>{formatMoney(official.input * officialRate)}</dd>
+                              <dt>{t('输出', 'Output')}</dt><dd>{formatMoney(official.output * officialRate)}</dd>
+                            </dl>
+                          ) : <span className={styles.muted}>{t('暂无参考价', 'No reference price')}</span>
+                        })()}
+                      </td> : null}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Prices are shown in USD; multipliers, groups, and dynamic billing follow actual request settlement.')}</p>
+          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。本站价格按当前语言显示；models.dev 参考价按后台汇率换算为人民币。实际价格以请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Our prices follow the selected language; models.dev reference prices are converted to CNY using the current exchange rate. Actual billing follows request settlement.')}</p>
         </>
       ) : null}
     </div>

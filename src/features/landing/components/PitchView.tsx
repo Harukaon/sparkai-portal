@@ -64,8 +64,8 @@ export function PitchView() {
 
       <p className={styles.lead}>
         {t(
-          '无需辗转多个平台，一个入口即可使用多家领先 AI 模型。对话内容不做留存，服务稳定、响应迅速。',
-          'Use leading AI models from one place, without jumping between platforms. Your conversations are not stored, with reliable service and fast responses.',
+          '无需辗转多个平台，一个入口即可使用多家领先 AI 模型。自研 Agent 架构即将上线，一键接入多家模型，让 AI 不止回答问题，更能协助你完成任务。',
+          'Use leading AI models from one place, without jumping between platforms. Our self-developed agent is coming soon, bringing models together to help AI do more than answer questions.',
         )}
       </p>
 

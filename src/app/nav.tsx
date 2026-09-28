@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import {
   HomeOutlined,
   AppstoreOutlined,
+  RobotOutlined,
   RocketOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -22,6 +23,7 @@ export interface NavItem {
 /** 顶部导航：只放已经做好的页面，没做的不写。当前所在页面会高亮。 */
 export const NAV_ITEMS: NavItem[] = [
   { label: ['模型广场', 'Models'], to: '/models', icon: <AppstoreOutlined />, inTabBar: true },
+  { label: ['Agent', 'Agent'], to: '/agent', icon: <RobotOutlined /> },
   { label: ['快速开始', 'Quick Start'], to: '/quickstart', icon: <RocketOutlined /> },
   { label: ['控制台', 'Console'], to: '/console', icon: <UserOutlined />, authOnly: true, inTabBar: true },
 ]

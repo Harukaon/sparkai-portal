@@ -15,6 +15,7 @@ import { TicketDetailPage } from '@/pages/console/TicketDetailPage'
 import { TicketsPage } from '@/pages/console/TicketsPage'
 import { WalletPage } from '@/pages/console/WalletPage'
 import { HomePage } from '@/pages/landing/HomePage'
+import { AgentPage } from '@/pages/AgentPage'
 import { ModelsPage } from '@/pages/models/ModelsPage'
 import { QuickStartPage } from '@/pages/quickstart/QuickStartPage'
 
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'models', element: <ModelsPage /> },
+      { path: 'agent', element: <AgentPage /> },
       { path: 'quickstart', element: <QuickStartPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
