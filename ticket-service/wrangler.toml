@@ -4,8 +4,9 @@ main = "src/worker.ts"
 compatibility_date = "2026-09-01"
 workers_dev = false
 
-# ai.sparkai.si/ticket-api/* 交给本服务，其余请求照常走源站
-routes = [{ pattern = "ai.sparkai.si/ticket-api/*", zone_name = "sparkai.si" }]
+# 工单服务自己的域名（走 Cloudflare）。主站 ai.sparkai.si 是灰云直连源站，
+# 由源站 OpenResty 把 /ticket-api/ 反代到这里，前台地址不变。
+routes = [{ pattern = "ticket.sparkai.si", custom_domain = true }]
 
 [vars]
 NEW_API_BASE = "https://ai.sparkai.si"

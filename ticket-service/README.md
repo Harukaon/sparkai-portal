@@ -43,7 +43,7 @@ node src/server.ts        # 默认 127.0.0.1:3100，数据在 ./data，New API �
 
 ## 线上部署（Cloudflare）
 
-配置在 `wrangler.toml`：路由 `ai.sparkai.si/ticket-api/*` 交给 Worker，其余请求照常回源站，所以服务器和 OpenResty 都不用改。
+配置在 `wrangler.toml`：Worker 绑定自己的域名 `ticket.sparkai.si`（走 Cloudflare）。主站 `ai.sparkai.si` 是灰云直连源站，由源站 OpenResty 把 `/ticket-api/` 反代到 `https://ticket.sparkai.si`（`client_max_body_size 2m`），前台地址不变。以后换成 DMIT 等中转机，也是在中转机上加同样一条反代。
 
 ```bash
 cd ticket-service
