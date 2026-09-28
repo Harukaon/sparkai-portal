@@ -83,6 +83,8 @@ export function ModelsPage() {
   const [vendorChoice, setVendorChoice] = useState('all')
   const [sortBy, setSortBy] = useState<'iq' | 'name'>('iq')
   const intelligence = useIntelligence()
+  const showAllEndpointTypes = import.meta.env.DEV && typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).has('previewEndpoints')
 
   const data = pricing.data
   const groups = Object.entries(data?.usable_group ?? {})
@@ -187,7 +189,7 @@ export function ModelsPage() {
                       <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
                       <td>
                         <div className={styles.meta}><span>{vendorName(model, vendors)}</span>
-                          {(model.supported_endpoint_types ?? []).slice(0, 3).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
+                          {(showAllEndpointTypes ? model.supported_endpoint_types ?? [] : (model.supported_endpoint_types ?? []).slice(0, 3)).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
                         </div>
                       </td>
                       <td className={styles.price}>{group === 'all' ? (

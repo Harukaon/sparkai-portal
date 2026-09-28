@@ -5,16 +5,20 @@ import { ApiError, http } from '@/shared/api/client'
 
 /** 仅开发环境用于页面排版检查；不会改变服务端配置或生产构建。 */
 function applyEndpointPreview(body: PricingResponse): PricingResponse {
-  if (
-    !import.meta.env.DEV ||
-    typeof window === 'undefined' ||
-    new URLSearchParams(window.location.search).get('previewEndpoints') !== 'anthropic'
-  ) return body
+  if (!import.meta.env.DEV || typeof window === 'undefined') return body
+
+  // OpenAI WS 仅用于检查标签排版，不代表服务端或上游已开通该接口。
+  const previewOnlyTypes = new Set(['anthropic', 'gemini', 'openai-ws'])
+  const previewEndpoints = (new URLSearchParams(window.location.search).get('previewEndpoints') ?? '')
+    .split(',')
+    .map((endpoint) => endpoint.trim())
+    .filter((endpoint) => previewOnlyTypes.has(endpoint))
+  if (!previewEndpoints.length) return body
 
   return {
     ...body,
     data: body.data.map((model) => model.model_name.startsWith('deepseek/')
-      ? { ...model, supported_endpoint_types: [...new Set([...(model.supported_endpoint_types ?? []), 'anthropic'])] }
+      ? { ...model, supported_endpoint_types: [...new Set([...(model.supported_endpoint_types ?? []), ...previewEndpoints])] }
       : model),
   }
 }
