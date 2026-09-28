@@ -140,7 +140,7 @@
 }
 
 @media (max-width: 380px) {
-  .actions > a:first-of-type {
+  .actions > a[href='/login'] {
     display: none;
   }
 
