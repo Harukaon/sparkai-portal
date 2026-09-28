@@ -26,7 +26,8 @@ export class Authenticator {
   private readonly newApiBase: string
   private readonly fetcher: Fetcher
 
-  constructor(newApiBase: string, fetcher: Fetcher = fetch) {
+  // 注意：Workers 里不能把全局 fetch 直接存成成员再调用（会报 Illegal invocation），要包一层
+  constructor(newApiBase: string, fetcher: Fetcher = (url, init) => fetch(url, init)) {
     this.newApiBase = newApiBase
     this.fetcher = fetcher
   }
@@ -50,12 +51,16 @@ export class Authenticator {
         headers: { Authorization: authorization, Accept: 'application/json' },
         signal: AbortSignal.timeout(8000),
       })
-    } catch {
+    } catch (error) {
       // New API 连不上：当成暂时无法确认身份，由上层返回 503，而不是误判成未登录
+      console.error('[ticket-service] auth backend unreachable:', error instanceof Error ? error.message : error)
       throw new Error('auth backend unavailable')
     }
     if (response.status === 401 || response.status === 403) return null
-    if (!response.ok) throw new Error(`auth backend returned ${response.status}`)
+    if (!response.ok) {
+      console.error('[ticket-service] auth backend returned', response.status, response.headers.get('server'), response.headers.get('cf-mitigated'))
+      throw new Error(`auth backend returned ${response.status}`)
+    }
 
     const body = (await response.json().catch(() => null)) as {
       success?: boolean

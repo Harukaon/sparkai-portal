@@ -14,7 +14,7 @@ MAX_IMAGE_BYTES = "1048576"
 [[d1_databases]]
 binding = "DB"
 database_name = "sparkai-tickets"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "acaeb9cd-f1e0-4c3b-baef-0d652c294792"
 
 [[r2_buckets]]
 binding = "UPLOADS"
