@@ -1,19 +1,18 @@
 /* 一屏两段：主区撑满剩余高度，底部数据带贴在下面 */
 
+/* 同登录页：只长不缩，屏幕矮时整页往下滚，而不是居中后上半截被裁掉 */
 .hero {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 .stage {
   position: relative;
   isolation: isolate;
-  flex: 1;
+  flex: 1 0 auto;
   display: grid;
   align-content: center;
-  min-height: 0;
   padding-block: clamp(16px, 3vh, 40px);
 }
 

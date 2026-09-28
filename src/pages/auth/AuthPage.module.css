@@ -1,8 +1,11 @@
+/*
+ * 卡片比屏幕高时要能往下滚。关键是 flex: 1 0 auto（只长不缩）：
+ * 之前用 flex: 1 会被压回屏幕高度，卡片居中后上下各溢出一半，上半截滚不到，看起来就是「被顶上去了」。
+ */
 .page {
   position: relative;
   display: flex;
-  flex: 1;
-  min-height: 100%;
+  flex: 1 0 auto;
   align-items: center;
   justify-content: center;
   padding: var(--space-8) var(--space-4);
