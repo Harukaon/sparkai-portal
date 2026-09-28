@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import { useAuthStore } from '@/features/auth/auth-store'
 import { logout } from '@/features/auth/session'
+import { AnnouncementBell } from '@/features/notices/components/AnnouncementBell'
 import { errorMessage } from '@/shared/api/client'
 import { queryClient } from '@/shared/api/query-client'
 import { setLang, useLang, useT } from '@/shared/i18n'
@@ -83,6 +84,7 @@ export function SiteHeader() {
         </nav>
 
         <div className={styles.actions}>
+          <AnnouncementBell />
           <LangToggle />
           <Button
             className={styles.menuToggle}

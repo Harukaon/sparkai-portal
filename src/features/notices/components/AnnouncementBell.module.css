@@ -1,0 +1,84 @@
+.trigger {
+  color: var(--color-ink-muted);
+}
+
+.trigger:hover {
+  color: var(--color-ink);
+}
+
+.panel {
+  width: min(360px, calc(100vw - 32px));
+}
+
+.panelHead {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-line);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.list {
+  max-height: min(420px, 60vh);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: var(--radius-pill);
+}
+
+.dotDefault {
+  background: var(--color-line-strong);
+}
+
+.dotOngoing {
+  background: var(--color-info);
+}
+
+.dotSuccess {
+  background: var(--color-success);
+}
+
+.dotWarning {
+  background: var(--color-warning);
+}
+
+.dotError {
+  background: var(--color-danger);
+}
+
+.body {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.extra {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.time {
+  color: var(--color-ink-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}

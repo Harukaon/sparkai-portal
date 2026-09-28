@@ -1,3 +1,5 @@
+import type { Announcement } from '@/features/notices/types'
+
 /**
  * 登录注册相关的数据结构，字段名与 New API（v1.0.0-rc.40）保持一致。
  * 只列我们用得到的字段，后端多返回的字段不影响。
@@ -129,4 +131,8 @@ export interface SystemStatus {
   custom_currency_exchange_rate?: number
   /** 是否记录按小时汇总的用量数据（总览图表用） */
   enable_data_export?: boolean
+
+  /** 后台「控制台设置 → 系统公告」开关与列表（开了才会下发） */
+  announcements_enabled?: boolean
+  announcements?: Announcement[]
 }
