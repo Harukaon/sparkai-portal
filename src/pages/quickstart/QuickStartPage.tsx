@@ -80,7 +80,12 @@ export function QuickStartPage() {
   const authenticated = useAuthStore((state) => state.status === 'authenticated')
   const system = useSystemStatus()
   const pricing = usePricing()
-  const base = (system.data?.server_address || window.location.origin).replace(/\/+$/, '')
+  // 后台「服务器地址」没配或还是本地地址时，退回当前访问域名，避免示例里出现 localhost
+  const configured = system.data?.server_address ?? ''
+  const configuredUsable =
+    configured.startsWith('https://') ||
+    (configured.startsWith('http://') && !/\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/.test(configured))
+  const base = (configuredUsable ? configured : window.location.origin).replace(/\/+$/, '')
   const model = pricing.data?.data[0]?.model_name ?? t('模型名', 'model-name')
 
   return (
