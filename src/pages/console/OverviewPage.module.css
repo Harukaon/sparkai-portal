@@ -76,44 +76,61 @@
   text-underline-offset: 3px;
 }
 
-.bars {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-3);
-  height: 168px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.day {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: var(--space-2);
+.chartFrame {
+  width: 100%;
   min-width: 0;
 }
 
-.track {
-  display: flex;
-  align-items: flex-end;
-  border-radius: var(--radius-xs);
-  background: var(--color-surface-sunken);
-  overflow: hidden;
-}
-
-.bar {
+.chart {
   display: block;
   width: 100%;
-  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
-  background: var(--color-ink);
-  transition: height 420ms var(--ease-out);
+  height: 250px;
 }
 
-.dayLabel {
-  color: var(--color-ink-muted);
+.chartGrid {
+  stroke: var(--color-line);
+  stroke-width: 1;
+}
+
+.chartBaseline {
+  stroke: var(--color-line-strong);
+  stroke-width: 1.25;
+}
+
+.chartArea {
+  fill: var(--color-accent-soft);
+  opacity: 0.78;
+}
+
+.chartLine {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chartPoint {
+  fill: var(--color-surface);
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  cursor: help;
+}
+
+.chartAxisLabel,
+.chartDayLabel {
+  fill: var(--color-ink-muted);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  text-align: center;
+  font-size: 12px;
+}
+
+.chartAxisLabel {
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+.chartDayLabel {
+  text-anchor: middle;
 }
 
 .note {
@@ -140,11 +157,6 @@
 @media (max-width: 520px) {
   .panel {
     padding: var(--space-4);
-  }
-
-  .bars {
-    gap: var(--space-2);
-    height: 132px;
   }
 
   .stat dd {
