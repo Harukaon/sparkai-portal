@@ -1,7 +1,7 @@
 import {
   ArrowRightOutlined,
   BookOutlined,
-  DollarOutlined,
+  EyeInvisibleOutlined,
   SafetyCertificateOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons'
@@ -23,22 +23,22 @@ interface Highlight {
   description: [string, string]
 }
 
-/** 三个卖点：标题短、说明具体，不放没有依据的数字 */
+/** 三个卖点：零数据保留排第一，其次稳定、快速。面向普通用户说话，不堆技术名词 */
 const HIGHLIGHTS: Highlight[] = [
   {
-    icon: <ThunderboltOutlined />,
-    title: ['快速接入', 'Quick to integrate'],
-    description: ['只需替换 SDK 地址与密钥', 'Swap the base URL and key'],
+    icon: <EyeInvisibleOutlined />,
+    title: ['零数据保留', 'Zero data retention'],
+    description: ['请求内容用完即弃，不存一条', 'Your requests are never stored'],
   },
   {
     icon: <SafetyCertificateOutlined />,
-    title: ['协议兼容', 'Protocol compatible'],
-    description: ['支持 OpenAI 与 Anthropic', 'OpenAI and Anthropic protocols'],
+    title: ['稳定可靠', 'Rock-solid'],
+    description: ['多线路保障，服务不掉线', 'Redundant routes, always on'],
   },
   {
-    icon: <DollarOutlined />,
-    title: ['价格透明', 'Transparent pricing'],
-    description: ['分组和模型价格可查', 'Per-group, per-model prices'],
+    icon: <ThunderboltOutlined />,
+    title: ['快速响应', 'Fast responses'],
+    description: ['低延迟直连，回答即刻送达', 'Low latency, answers arrive fast'],
   },
 ]
 
@@ -54,18 +54,18 @@ export function PitchView() {
     <div className={styles.copy}>
       <span className={styles.badge}>
         <span className={styles.badgeDot} aria-hidden="true" />
-        {t('一个地址，连接全球 AI 能力', 'One endpoint to all major AI models')}
+        {t('零数据保留 · 稳定 · 快速', 'Zero data retention · Stable · Fast')}
       </span>
 
       <h1 className={styles.title}>
-        {t('一个地址，', 'One endpoint,')}
-        <span className={styles.titleKeep}>{t('接上所有主流模型', 'every major model')}</span>
+        {t('一个地址，', 'One address,')}
+        <span className={styles.titleKeep}>{t('用上各家旗舰模型', 'every flagship model')}</span>
       </h1>
 
       <p className={styles.lead}>
         {t(
-          '兼容 OpenAI 与 Anthropic 协议。已有的 SDK 只需替换 base_url，配置一个密钥，即可在一个地方查看已开放模型的价格、密钥和请求记录。',
-          'Works with OpenAI and Anthropic protocols. Point your existing SDK at our base URL, add one key, and manage model prices, API keys, and request logs in one place.',
+          '你的对话只属于你：我们不保留任何请求内容，用完即弃。一个接入地址，各家旗舰模型随你切换，稳定不掉线，响应快人一步。',
+          'Your conversations stay yours: we never keep what you send. One address gives you every flagship model — stable, always on, and fast.',
         )}
       </p>
 

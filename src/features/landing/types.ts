@@ -31,5 +31,5 @@ export interface StatItem {
   /** 说明 */
   label: [string, string]
   /** 图标标识，由组件映射成具体图标 */
-  icon: 'users' | 'cube' | 'bolt' | 'globe'
+  icon: 'users' | 'cube' | 'bolt' | 'globe' | 'shield'
 }

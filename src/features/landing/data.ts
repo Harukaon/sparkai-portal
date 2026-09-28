@@ -43,10 +43,10 @@ export const PRICE_ROWS: PriceRow[] = [
 
 /** 只描述产品已支持的能力，不放未核实的用户数和可用率承诺。文案为 [中文, 英文]。 */
 export const STATS: StatItem[] = [
-  { icon: 'users', value: ['账号自助管理', 'Self-serve accounts'], label: ['注册 · 登录 · 密钥', 'Sign-up · Sign-in · Keys'] },
-  { icon: 'cube', value: ['主流协议兼容', 'Protocol compatible'], label: ['OpenAI · Anthropic', 'OpenAI · Anthropic'] },
-  { icon: 'bolt', value: ['按量计费', 'Pay as you go'], label: ['用量与请求记录可查', 'Usage and request logs'] },
-  { icon: 'globe', value: ['统一入口', 'One endpoint'], label: ['一套地址接入开放的模型', 'One base URL for every model'] },
+  { icon: 'shield', value: ['零数据保留', 'Zero data retention'], label: ['不存任何请求内容', 'Nothing you send is stored'] },
+  { icon: 'globe', value: ['一个地址', 'One address'], label: ['各家旗舰模型随心切换', 'Every flagship model'] },
+  { icon: 'cube', value: ['稳定可靠', 'Stable'], label: ['多线路保障不掉线', 'Redundant routes'] },
+  { icon: 'bolt', value: ['快速响应', 'Fast'], label: ['低延迟，优质服务', 'Low latency, quality service'] },
 ]
 
 export function pickText(text: [string, string], lang: Lang): string {

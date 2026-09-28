@@ -1,4 +1,4 @@
-import { GlobalOutlined, ThunderboltOutlined, TeamOutlined, CodeSandboxOutlined } from '@ant-design/icons'
+import { CodeSandboxOutlined, EyeInvisibleOutlined, GlobalOutlined, TeamOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import type { ReactNode } from 'react'
 
 import { STATS, pickText } from '@/features/landing/data'
@@ -11,6 +11,7 @@ const ICONS: Record<string, ReactNode> = {
   cube: <CodeSandboxOutlined />,
   bolt: <ThunderboltOutlined />,
   globe: <GlobalOutlined />,
+  shield: <EyeInvisibleOutlined />,
 }
 
 /**
