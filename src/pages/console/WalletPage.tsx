@@ -23,13 +23,14 @@ import type { TopupInfo, TopupRecord } from '@/features/wallet/api'
 import { amountOptions, creemProducts, discountFor, paymentMethods } from '@/features/wallet/topup'
 import { errorMessage } from '@/shared/api/client'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './WalletPage.module.css'
 
-const STATUS: Record<string, { label: string; color?: string }> = {
-  success: { label: '已到账', color: 'success' },
-  pending: { label: '待支付', color: 'processing' },
-  expired: { label: '已过期' },
+const STATUS: Record<string, { label: [string, string]; color?: string }> = {
+  success: { label: ['已到账', 'Paid'] as [string, string], color: 'success' },
+  pending: { label: ['待支付', 'Pending'] as [string, string], color: 'processing' },
+  expired: { label: ['已过期', 'Expired'] as [string, string] },
 }
 
 /**
@@ -56,6 +57,7 @@ function useDebounced<T>(value: T, delay: number): T {
 }
 
 function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat }) {
+  const t = useT()
   const { message } = AntdApp.useApp()
   const methods = paymentMethods(info)
   const presets = amountOptions(info)
@@ -78,14 +80,14 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
   async function pay() {
     if (!method || !amount) return
     if (amount < method.min) {
-      message.error(`${method.name} 最少充值 ${amountLabel(method.min, format)}`)
+      message.error(t(`${method.name} 最少充值 ${amountLabel(method.min, format)}`, `${method.name} minimum is ${amountLabel(method.min, format)}`))
       return
     }
     setPaying(method.type)
     try {
       openPayment(await createPayment(method.type, amount))
     } catch (error: unknown) {
-      message.error(errorMessage(error, '下单失败，请稍后重试'))
+      message.error(errorMessage(error, t('下单失败，请稍后重试', 'Could not create the order — try again later')))
       setPaying(null)
     }
   }
@@ -95,7 +97,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
     try {
       openPayment(await createCreemPayment(productId))
     } catch (error: unknown) {
-      message.error(errorMessage(error, '下单失败，请稍后重试'))
+      message.error(errorMessage(error, t('下单失败，请稍后重试', 'Could not create the order — try again later')))
       setPaying(null)
     }
   }
@@ -105,7 +107,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
       {methods.length > 0 ? (
         <div className={styles.topup}>
           <div className={styles.field}>
-            <span className={styles.label}>充值额度</span>
+            <span className={styles.label}>{t('充值额度', 'Amount')}</span>
             {presets.length > 0 ? (
               <div className={styles.presets}>
                 {presets.map((value) => {
@@ -119,7 +121,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
                       onClick={() => setAmount(value)}
                     >
                       <strong>{amountLabel(value, format)}</strong>
-                      {rate < 1 ? <span>{Math.round(rate * 100) / 10} 折</span> : null}
+                      {rate < 1 ? <span>{t(`${Math.round(rate * 100) / 10} 折`, `${Math.round(rate * 1000) / 100}% off`)}</span> : null}
                     </button>
                   )
                 })}
@@ -131,17 +133,17 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
                 precision={0}
                 value={amount}
                 onChange={(value) => setAmount(typeof value === 'number' ? value : null)}
-                placeholder="自定义份数"
-                aria-label="自定义充值数量"
+                placeholder={t('自定义份数', 'Custom packs')}
+                aria-label={t('自定义充值数量', 'Custom number of packs')}
                 style={{ width: '100%' }}
               />
-              <Space.Addon>份 × {amountLabel(1, format)}</Space.Addon>
+              <Space.Addon>{t('份', 'packs')} × {amountLabel(1, format)}</Space.Addon>
             </Space.Compact>
             {method ? <span className={styles.hint}>自定义时按份填写，1 份到账 {amountLabel(1, format)} 额度；{method.name} 最少 {method.min} 份</span> : null}
           </div>
 
           <div className={styles.field}>
-            <span className={styles.label}>支付方式</span>
+            <span className={styles.label}>{t('支付方式', 'Payment method')}</span>
             <Radio.Group
               optionType="button"
               value={method?.type}
@@ -152,16 +154,16 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
 
           <div className={styles.payRow}>
             <span className={styles.quote}>
-              应付
+              {t('应付', 'Total')}
               <strong>
-                {!valid ? '—' : quote.isFetching ? '计算中…' : quote.isError || !quote.data ? '—' : moneyText(quote.data, method?.type)}
+                {!valid ? '—' : quote.isFetching ? t('计算中…', '…') : quote.isError || !quote.data ? '—' : moneyText(quote.data, method?.type)}
               </strong>
             </span>
             <Button type="primary" size="large" loading={paying === method?.type} disabled={!valid || quote.isError} onClick={() => void pay()}>
-              前往支付
+              {t('前往支付', 'Pay now')}
             </Button>
           </div>
-          {quote.isError ? <Alert type="error" showIcon title={errorMessage(quote.error, '暂时无法计算金额')} /> : null}
+          {quote.isError ? <Alert type="error" showIcon title={errorMessage(quote.error, t('暂时无法计算金额', 'Could not calculate the amount right now'))} /> : null}
           <p className={styles.hint}>点击后会跳转到支付页面，付款成功后额度自动到账；实际币种和金额以支付页面为准。</p>
         </div>
       ) : null}
@@ -171,7 +173,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
           {products.map((product) => (
             <div key={product.productId} className={styles.product}>
               <strong>{product.name}</strong>
-              <span>到账 {formatQuota(product.quota, format)}</span>
+              <span>{t('到账', 'Credit')} {formatQuota(product.quota, format)}</span>
               <Button loading={paying === product.productId} onClick={() => void buy(product.productId)}>
                 {product.currency === 'EUR' ? '€' : '$'}{product.price} 购买
               </Button>
@@ -184,6 +186,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
 }
 
 function Redeem({ info, format, onDone }: { info: TopupInfo; format: QuotaFormat; onDone: () => void }) {
+  const t = useT()
   const { message } = AntdApp.useApp()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -191,25 +194,25 @@ function Redeem({ info, format, onDone }: { info: TopupInfo; format: QuotaFormat
 
   async function submit() {
     if (!code.trim()) {
-      setError('请输入兑换码')
+      setError(t('请输入兑换码', 'Enter a redemption code'))
       return
     }
     setBusy(true)
     setError(null)
     try {
       const quota = await redeemCode(code)
-      message.success(`兑换成功，到账 ${formatQuota(quota, format)}`)
+      message.success(t(`兑换成功，到账 ${formatQuota(quota, format)}`, `Redeemed — ${formatQuota(quota, format)} credited`))
       setCode('')
       onDone()
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '兑换失败，请检查兑换码'))
+      setError(errorMessage(caught, t('兑换失败，请检查兑换码', 'Redemption failed — check the code')))
     } finally {
       setBusy(false)
     }
   }
 
   if (!info.enable_redemption) {
-    return <p className={styles.hint}>站点暂未开放兑换码充值。</p>
+    return <p className={styles.hint}>{t('站点暂未开放兑换码充值。', 'Redemption codes are not enabled on this site.')}</p>
   }
 
   return (
@@ -218,12 +221,12 @@ function Redeem({ info, format, onDone }: { info: TopupInfo; format: QuotaFormat
         <Input
           value={code}
           onChange={(event) => { setCode(event.target.value); setError(null) }}
-          placeholder="粘贴兑换码"
+          placeholder={t('粘贴兑换码', 'Paste redemption code')}
           allowClear
           onPressEnter={() => void submit()}
-          aria-label="兑换码"
+          aria-label={t('兑换码', 'Redemption code')}
         />
-        <Button type="primary" loading={busy} onClick={() => void submit()}>兑换</Button>
+        <Button type="primary" loading={busy} onClick={() => void submit()}>{t('兑换', 'Redeem')}</Button>
       </div>
       {error ? <Alert type="error" showIcon title={error} /> : null}
     </div>
@@ -231,7 +234,8 @@ function Redeem({ info, format, onDone }: { info: TopupInfo; format: QuotaFormat
 }
 
 export function WalletPage() {
-  usePageTitle('充值与账单')
+  const t = useT()
+  usePageTitle(t('充值与账单', 'Billing'))
   const queryClient = useQueryClient()
   const storedUser = useAuthStore((state) => state.user)
   const updateUser = useAuthStore((state) => state.updateUser)
@@ -263,32 +267,32 @@ export function WalletPage() {
 
   const columns: ColumnsType<TopupRecord> = [
     {
-      title: '时间',
+      title: t('时间', 'Time'),
       dataIndex: 'create_time',
       render: (value: number) => <span className={styles.mono}>{dayjs.unix(value).format('YYYY-MM-DD HH:mm')}</span>,
     },
     {
-      title: '订单号',
+      title: t('订单号', 'Order'),
       dataIndex: 'trade_no',
       render: (value: string) => <Typography.Text className={styles.mono} copyable={{ text: value }}>{value}</Typography.Text>,
     },
-    { title: '支付方式', dataIndex: 'payment_method', render: (value: string) => value || '—' },
+    { title: t('支付方式', 'Method'), dataIndex: 'payment_method', render: (value: string) => value || '—' },
     {
-      title: '到账额度',
+      title: t('到账额度', 'Credit'),
       dataIndex: 'amount',
       align: 'right',
       render: (value: number) => <span className={styles.mono}>{formatQuota(value * format.perUnit, format)}</span>,
     },
     {
-      title: '实付',
+      title: t('实付', 'Paid'),
       dataIndex: 'money',
       align: 'right',
       render: (value: number, record) => <span className={styles.mono}>{moneyText(value || 0, record.payment_method)}</span>,
     },
     {
-      title: '状态',
+      title: t('状态', 'Status'),
       dataIndex: 'status',
-      render: (value: string) => <Tag color={STATUS[value]?.color}>{STATUS[value]?.label ?? value}</Tag>,
+      render: (value: string) => <Tag color={STATUS[value]?.color}>{t(...(STATUS[value]?.label ?? [value, value]))}</Tag>,
     },
   ]
 
@@ -297,41 +301,41 @@ export function WalletPage() {
 
   return (
     <div>
-      <PageHead title="充值与账单" description="给账号充值额度，所有密钥共用这份余额。" />
+      <PageHead title={t('充值与账单', 'Billing')} description={t('给账号充值额度，所有密钥共用这份余额。', 'Top up your account; all keys share this balance.')} />
 
       <div className={styles.balance}>
         <div>
-          <span>可用余额</span>
+          <span>{t('可用余额', 'Balance')}</span>
           <strong>{formatQuota(user?.quota, format)}</strong>
         </div>
         <div>
-          <span>累计消费</span>
+          <span>{t('累计消费', 'Total spent')}</span>
           <strong>{formatQuota(user?.used_quota, format)}</strong>
         </div>
       </div>
 
       {info.isError ? (
-        <Alert type="error" showIcon title="充值配置暂时获取不到" action={<Button size="small" onClick={() => void info.refetch()}>重试</Button>} />
+        <Alert type="error" showIcon title={t('充值配置暂时获取不到', 'Could not load top-up settings')} action={<Button size="small" onClick={() => void info.refetch()}>{t('重试', 'Retry')}</Button>} />
       ) : info.isPending || !topupInfo ? (
         <Skeleton active paragraph={{ rows: 5 }} />
       ) : (
         <div className={styles.grid}>
           <section className={styles.panel} aria-labelledby="online-title">
-            <h2 id="online-title">在线充值</h2>
+            <h2 id="online-title">{t('在线充值', 'Top up online')}</h2>
             {hasOnline ? (
               <OnlineTopup info={topupInfo} format={format} />
             ) : (
               <p className={styles.hint}>
-                {topupInfo.enable_redemption ? '站点暂未开通在线支付，可以使用右侧的兑换码充值。' : '站点暂未开通在线充值，请联系站长。'}
+                {topupInfo.enable_redemption ? t('站点暂未开通在线支付，可以使用右侧的兑换码充值。', 'Online payment is not enabled — use a redemption code on the right.') : t('站点暂未开通在线充值，请联系站长。', 'Online top-up is not enabled — contact the administrator.')}
               </p>
             )}
           </section>
           <section className={styles.panel} aria-labelledby="redeem-title">
-            <h2 id="redeem-title"><GiftOutlined /> 兑换码</h2>
+            <h2 id="redeem-title"><GiftOutlined /> {t('兑换码', 'Redemption code')}</h2>
             <Redeem info={topupInfo} format={format} onDone={afterRedeem} />
             {topupInfo.topup_link && /^https?:\/\//.test(topupInfo.topup_link) ? (
               <a className={styles.buyLink} href={topupInfo.topup_link} target="_blank" rel="noopener noreferrer">
-                <LinkOutlined /> 去购买兑换码
+                <LinkOutlined /> {t('去购买兑换码', 'Buy a code')}
               </a>
             ) : null}
           </section>
@@ -339,9 +343,9 @@ export function WalletPage() {
       )}
 
       <section className={styles.historySection} aria-labelledby="history-title">
-        <h2 id="history-title">充值记录</h2>
+        <h2 id="history-title">{t('充值记录', 'Top-up history')}</h2>
         {history.isError ? (
-          <Alert type="error" showIcon title="充值记录暂时获取不到" action={<Button size="small" onClick={() => void history.refetch()}>重试</Button>} />
+          <Alert type="error" showIcon title={t('充值记录暂时获取不到', 'Could not load top-up history')} action={<Button size="small" onClick={() => void history.refetch()}>{t('重试', 'Retry')}</Button>} />
         ) : (
           <Table<TopupRecord>
             className={styles.table}
@@ -350,7 +354,7 @@ export function WalletPage() {
             dataSource={history.data?.items ?? []}
             loading={history.isFetching}
             scroll={{ x: 760 }}
-            locale={{ emptyText: '还没有充值记录' }}
+            locale={{ emptyText: t('还没有充值记录', 'No top-ups yet') }}
             pagination={{
               current: page,
               pageSize,

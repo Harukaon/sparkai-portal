@@ -5,10 +5,11 @@ import { useAuthStore } from '@/features/auth/auth-store'
 import { useSystemStatus } from '@/features/auth/hooks'
 import { usePricing } from '@/features/models/api'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './QuickStartPage.module.css'
 
-function samples(base: string, model: string) {
+function samples(base: string, model: string, t: (zh: string, en: string) => string) {
   return [
     {
       key: 'curl',
@@ -23,7 +24,7 @@ function samples(base: string, model: string) {
     },
     {
       key: 'python',
-      label: 'Python（OpenAI SDK）',
+      label: t('Python（OpenAI SDK）', 'Python (OpenAI SDK)'),
       code: `from openai import OpenAI
 
 client = OpenAI(
@@ -39,7 +40,7 @@ print(reply.choices[0].message.content)`,
     },
     {
       key: 'node',
-      label: 'Node.js（OpenAI SDK）',
+      label: t('Node.js（OpenAI SDK）', 'Node.js (OpenAI SDK)'),
       code: `import OpenAI from 'openai'
 
 const client = new OpenAI({
@@ -55,7 +56,7 @@ console.log(reply.choices[0].message.content)`,
     },
     {
       key: 'anthropic',
-      label: 'Python（Anthropic SDK）',
+      label: t('Python（Anthropic SDK）', 'Python (Anthropic SDK)'),
       code: `from anthropic import Anthropic
 
 client = Anthropic(
@@ -74,62 +75,63 @@ print(reply.content[0].text)`,
 }
 
 export function QuickStartPage() {
-  usePageTitle('快速开始')
+  const t = useT()
+  usePageTitle(t('快速开始', 'Quick Start'))
   const authenticated = useAuthStore((state) => state.status === 'authenticated')
   const system = useSystemStatus()
   const pricing = usePricing()
   const base = (system.data?.server_address || window.location.origin).replace(/\/+$/, '')
-  const model = pricing.data?.data[0]?.model_name ?? '模型名'
+  const model = pricing.data?.data[0]?.model_name ?? t('模型名', 'model-name')
 
   return (
     <div className={styles.page}>
       <header className={styles.head}>
-        <h1>快速开始</h1>
-        <p>三步接入：拿到密钥，把 SDK 的地址换成本站，照常调用。</p>
+        <h1>{t('快速开始', 'Quick Start')}</h1>
+        <p>{t('三步接入：拿到密钥，把 SDK 的地址换成本站，照常调用。', 'Three steps: get a key, point your SDK at us, and call as usual.')}</p>
       </header>
 
       <ol className={styles.steps}>
         <li>
-          <h2>{authenticated ? '账号已就绪，确认余额' : '注册账号并充值'}</h2>
+          <h2>{authenticated ? t('账号已就绪，确认余额', 'Account ready — check balance') : t('注册账号并充值', 'Create an account and top up')}</h2>
           <p>
-            调用按实际用量从余额扣费。
-            {authenticated ? <Link to="/console/wallet">去充值</Link> : <Link to="/register">创建账号</Link>}
+            {t('调用按实际用量从余额扣费。', 'Usage is deducted from your balance.')}
+            {authenticated ? <Link to="/console/wallet">{t('去充值', 'Top up')}</Link> : <Link to="/register">{t('创建账号', 'Create account')}</Link>}
           </p>
         </li>
         <li>
-          <h2>创建 API 密钥</h2>
+          <h2>{t('创建 API 密钥', 'Create an API key')}</h2>
           <p>
-            在控制台新建一个密钥，复制保存好（形如 <code>sk-…</code>）。
-            <Link to={authenticated ? '/console/keys' : '/login?redirect=%2Fconsole%2Fkeys'}>去创建密钥</Link>
+            {t('在控制台新建一个密钥，复制保存好（形如', 'Create a key in the console and keep it safe (it looks like')}{' '}<code>sk-…</code>{t('）。', ')')}
+            <Link to={authenticated ? '/console/keys' : '/login?redirect=%2Fconsole%2Fkeys'}>{t('去创建密钥', 'Create a key')}</Link>
           </p>
         </li>
         <li>
-          <h2>把接口地址换成本站</h2>
+          <h2>{t('把接口地址换成本站', 'Point the API URL at us')}</h2>
           <div className={styles.endpoints}>
             <div>
-              <span>OpenAI 协议</span>
+              <span>{t('OpenAI 协议', 'OpenAI protocol')}</span>
               <Typography.Text copyable={{ text: `${base}/v1` }} className={styles.mono}>{base}/v1</Typography.Text>
             </div>
             <div>
-              <span>Anthropic 协议</span>
+              <span>{t('Anthropic 协议', 'Anthropic protocol')}</span>
               <Typography.Text copyable={{ text: base }} className={styles.mono}>{base}</Typography.Text>
             </div>
           </div>
           <p>
-            模型名填模型广场里的「调用名称」。<Link to="/models">查看可用模型</Link>
+            {t('模型名填模型广场里的「调用名称」。', 'Use the model ID shown in the model list.')}{' '}<Link to="/models">{t('查看可用模型', 'See available models')}</Link>
           </p>
         </li>
       </ol>
 
-      <section className={styles.code} aria-label="调用示例">
-        <h2>调用示例</h2>
+      <section className={styles.code} aria-label={t('调用示例', 'Code samples')}>
+        <h2>{t('调用示例', 'Code samples')}</h2>
         <Tabs
-          items={samples(base, model).map((sample) => ({
+          items={samples(base, model, t).map((sample) => ({
             key: sample.key,
             label: sample.label,
             children: (
               <div className={styles.snippet}>
-                <Typography.Text copyable={{ text: sample.code, tooltips: ['复制代码', '已复制'] }} className={styles.copy} />
+                <Typography.Text copyable={{ text: sample.code, tooltips: [t('复制代码', 'Copy code'), t('已复制', 'Copied')] }} className={styles.copy} />
                 <pre>
                   <code>{sample.code}</code>
                 </pre>

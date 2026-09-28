@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { availableOAuthOptions, startOAuthLogin } from '@/features/auth/oauth'
 import type { SystemStatus } from '@/features/auth/types'
 import { errorMessage } from '@/shared/api/client'
+import { useT } from '@/shared/i18n'
 
 const ICONS: Record<string, ReactNode> = {
   github: <GithubOutlined />,
@@ -17,10 +18,12 @@ const ICONS: Record<string, ReactNode> = {
 interface OAuthButtonsProps {
   status: SystemStatus
   returnTo: string
-  action?: '登录' | '继续'
+  action?: string
 }
 
-export function OAuthButtons({ status, returnTo, action = '登录' }: OAuthButtonsProps) {
+export function OAuthButtons({ status, returnTo, action }: OAuthButtonsProps) {
+  const t = useT()
+  const actionText = action ?? t('登录', 'Sign in')
   const [starting, setStarting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const options = availableOAuthOptions(status)
@@ -33,7 +36,7 @@ export function OAuthButtons({ status, returnTo, action = '登录' }: OAuthButto
       const url = await startOAuthLogin(provider, status, returnTo)
       window.location.assign(url)
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '第三方登录暂时不可用'))
+      setError(errorMessage(caught, t('第三方登录暂时不可用', 'Third-party sign-in is unavailable right now')))
       setStarting(null)
     }
   }
@@ -49,7 +52,7 @@ export function OAuthButtons({ status, returnTo, action = '登录' }: OAuthButto
           disabled={starting !== null && starting !== option.slug}
           onClick={() => void start(option.slug)}
         >
-          使用 {option.name} {action}
+          {t('使用', 'Continue with')} {option.name} {actionText}
         </Button>
       ))}
       {error ? <Alert type="error" showIcon title={error} /> : null}

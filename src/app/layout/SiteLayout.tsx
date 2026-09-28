@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 
+import { MobileTabBar } from '@/app/layout/MobileTabBar'
 import { SiteHeader } from '@/app/layout/SiteHeader'
 
 import styles from './SiteLayout.module.css'
@@ -20,6 +21,7 @@ export function SiteLayout() {
       <main id="main" className={styles.main}>
         <Outlet />
       </main>
+      <MobileTabBar />
     </>
   )
 }

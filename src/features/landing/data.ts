@@ -1,4 +1,5 @@
 import type { PriceRow, StatItem } from '@/features/landing/types'
+import type { Lang } from '@/shared/i18n'
 
 /*
  * ⚠️ 示例数据：价格是占位的，定价确认后替换。
@@ -40,10 +41,14 @@ export const PRICE_ROWS: PriceRow[] = [
   },
 ]
 
-/** 只描述产品已支持的能力，不放未核实的用户数和可用率承诺。 */
+/** 只描述产品已支持的能力，不放未核实的用户数和可用率承诺。文案为 [中文, 英文]。 */
 export const STATS: StatItem[] = [
-  { icon: 'users', value: '账号自助管理', label: '注册 · 登录 · 密钥' },
-  { icon: 'cube', value: '主流协议兼容', label: 'OpenAI · Anthropic' },
-  { icon: 'bolt', value: '按量计费', label: '用量与请求记录可查' },
-  { icon: 'globe', value: '统一入口', label: '一套地址接入开放的模型' },
+  { icon: 'users', value: ['账号自助管理', 'Self-serve accounts'], label: ['注册 · 登录 · 密钥', 'Sign-up · Sign-in · Keys'] },
+  { icon: 'cube', value: ['主流协议兼容', 'Protocol compatible'], label: ['OpenAI · Anthropic', 'OpenAI · Anthropic'] },
+  { icon: 'bolt', value: ['按量计费', 'Pay as you go'], label: ['用量与请求记录可查', 'Usage and request logs'] },
+  { icon: 'globe', value: ['统一入口', 'One endpoint'], label: ['一套地址接入开放的模型', 'One base URL for every model'] },
 ]
+
+export function pickText(text: [string, string], lang: Lang): string {
+  return lang === 'zh' ? text[0] : text[1]
+}

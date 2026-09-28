@@ -24,12 +24,12 @@ export interface PriceRow {
   ours: UnitPrice
 }
 
-/** 底部的一条数据 */
+/** 底部的一条数据；文案为 [中文, 英文] */
 export interface StatItem {
-  /** 数值或主文案，如「10,000+」 */
-  value: string
+  /** 数值或主文案 */
+  value: [string, string]
   /** 说明 */
-  label: string
+  label: [string, string]
   /** 图标标识，由组件映射成具体图标 */
   icon: 'users' | 'cube' | 'bolt' | 'globe'
 }

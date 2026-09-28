@@ -1,3 +1,4 @@
+import { tr } from '@/shared/i18n'
 import { useEffect, useRef } from 'react'
 
 /**
@@ -31,7 +32,7 @@ function loadScript(): Promise<void> {
       script.onload = () => resolve()
       script.onerror = () => {
         loading = null
-        reject(new Error('人机验证加载失败'))
+        reject(new Error(tr('人机验证加载失败', 'Human check failed to load')))
       }
       document.head.appendChild(script)
     })

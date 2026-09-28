@@ -7,6 +7,7 @@ import { Turnstile } from '@/features/auth/components/Turnstile'
 import { useCountdown } from '@/features/auth/hooks'
 import type { SystemStatus } from '@/features/auth/types'
 import { errorMessage } from '@/shared/api/client'
+import { useT } from '@/shared/i18n'
 
 /** 与 New API 后端校验保持一致 */
 const USERNAME_MAX = 20
@@ -30,6 +31,7 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
+  const t = useT()
   const { message } = AntdApp.useApp()
   const [form] = Form.useForm<RegisterValues>()
   const [submitting, setSubmitting] = useState(false)
@@ -52,7 +54,7 @@ export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
 
   function turnstileMissing(): boolean {
     if (turnstileSiteKey && !turnstileToken) {
-      setError('请先完成下方的人机验证')
+      setError(t('请先完成下方的人机验证', 'Please complete the human check below first'))
       return true
     }
     return false
@@ -70,10 +72,10 @@ export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
     setError(null)
     try {
       await sendEmailVerificationCode(form.getFieldValue('email').trim(), turnstileToken)
-      message.success('验证码已发送，请到邮箱查收')
+      message.success(t('验证码已发送，请到邮箱查收', 'Code sent — check your inbox'))
       countdown.start(RESEND_SECONDS)
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '验证码发送失败，请稍后重试'))
+      setError(errorMessage(caught, t('验证码发送失败，请稍后重试', 'Could not send the code — try again later')))
     } finally {
       setSendingCode(false)
       renewTurnstile()
@@ -97,7 +99,7 @@ export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
       })
       onRegistered(username)
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '注册失败，请稍后重试'))
+      setError(errorMessage(caught, t('注册失败，请稍后重试', 'Sign-up failed — try again later')))
       renewTurnstile()
     } finally {
       setSubmitting(false)
@@ -115,73 +117,73 @@ export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
     >
       <Form.Item
         name="username"
-        label="用户名"
+        label={t('用户名', 'Username')}
         rules={[
-          { required: true, whitespace: true, message: '请输入用户名' },
-          { max: USERNAME_MAX, message: `用户名最多 ${USERNAME_MAX} 个字符` },
+          { required: true, whitespace: true, message: t('请输入用户名', 'Enter a username') },
+          { max: USERNAME_MAX, message: t(`用户名最多 ${USERNAME_MAX} 个字符`, `Username is at most ${USERNAME_MAX} characters`) },
         ]}
       >
-        <Input autoComplete="username" placeholder={`最多 ${USERNAME_MAX} 个字符`} autoFocus />
+        <Input autoComplete="username" placeholder={t(`最多 ${USERNAME_MAX} 个字符`, `Up to ${USERNAME_MAX} characters`)} autoFocus />
       </Form.Item>
 
       <Form.Item
         name="password"
-        label="密码"
+        label={t('密码', 'Password')}
         rules={[
-          { required: true, message: '请输入密码' },
-          { min: PASSWORD_MIN, message: `密码至少 ${PASSWORD_MIN} 位` },
-          { max: PASSWORD_MAX, message: `密码最多 ${PASSWORD_MAX} 位` },
+          { required: true, message: t('请输入密码', 'Enter a password') },
+          { min: PASSWORD_MIN, message: t(`密码至少 ${PASSWORD_MIN} 位`, `Password needs at least ${PASSWORD_MIN} characters`) },
+          { max: PASSWORD_MAX, message: t(`密码最多 ${PASSWORD_MAX} 位`, `Password is at most ${PASSWORD_MAX} characters`) },
         ]}
       >
-        <Input.Password autoComplete="new-password" placeholder={`至少 ${PASSWORD_MIN} 位`} />
+        <Input.Password autoComplete="new-password" placeholder={t(`至少 ${PASSWORD_MIN} 位`, `At least ${PASSWORD_MIN} characters`)} />
       </Form.Item>
 
       <Form.Item
         name="confirm"
-        label="确认密码"
+        label={t('确认密码', 'Confirm password')}
         dependencies={['password']}
         rules={[
-          { required: true, message: '请再输入一次密码' },
+          { required: true, message: t('请再输入一次密码', 'Enter the password again') },
           ({ getFieldValue }) => ({
             validator(_rule, value: string | undefined) {
               if (!value || getFieldValue('password') === value) return Promise.resolve()
-              return Promise.reject(new Error('两次输入的密码不一致'))
+              return Promise.reject(new Error(t('两次输入的密码不一致', 'Passwords do not match')))
             },
           }),
         ]}
       >
-        <Input.Password autoComplete="new-password" placeholder="再输入一次" />
+        <Input.Password autoComplete="new-password" placeholder={t('再输入一次', 'Repeat password')} />
       </Form.Item>
 
       {needEmail ? (
         <>
           <Form.Item
             name="email"
-            label="邮箱"
+            label={t('邮箱', 'Email')}
             rules={[
-              { required: true, whitespace: true, message: '请输入邮箱' },
-              { type: 'email', message: '邮箱格式不对' },
-              { max: EMAIL_MAX, message: `邮箱最多 ${EMAIL_MAX} 个字符` },
+              { required: true, whitespace: true, message: t('请输入邮箱', 'Enter your email') },
+              { type: 'email', message: t('邮箱格式不对', 'That does not look like a valid email') },
+              { max: EMAIL_MAX, message: t(`邮箱最多 ${EMAIL_MAX} 个字符`, `Email is at most ${EMAIL_MAX} characters`) },
             ]}
           >
-            <Input autoComplete="email" placeholder="用于接收验证码和找回密码" />
+            <Input autoComplete="email" placeholder={t('用于接收验证码和找回密码', 'For codes and password recovery')} />
           </Form.Item>
 
-          <Form.Item label="邮箱验证码" required>
+          <Form.Item label={t('邮箱验证码', 'Email code')} required>
             <Space.Compact block>
               <Form.Item
                 name="verification_code"
                 noStyle
-                rules={[{ required: true, whitespace: true, message: '请输入邮箱验证码' }]}
+                rules={[{ required: true, whitespace: true, message: t('请输入邮箱验证码', 'Enter the email code') }]}
               >
-                <Input autoComplete="one-time-code" placeholder="6 位验证码" />
+                <Input autoComplete="one-time-code" placeholder={t('6 位验证码', '6-digit code')} />
               </Form.Item>
               <Button
                 onClick={handleSendCode}
                 loading={sendingCode}
                 disabled={countdown.secondsLeft > 0}
               >
-                {countdown.secondsLeft > 0 ? `${countdown.secondsLeft} 秒后重发` : '发送验证码'}
+                {countdown.secondsLeft > 0 ? t(`${countdown.secondsLeft} 秒后重发`, `Resend in ${countdown.secondsLeft}s`) : t('发送验证码', 'Send code')}
               </Button>
             </Space.Compact>
           </Form.Item>
@@ -201,7 +203,7 @@ export function RegisterForm({ status, onRegistered }: RegisterFormProps) {
       ) : null}
 
       <Button type="primary" htmlType="submit" block loading={submitting}>
-        创建账号
+        {t('创建账号', 'Create account')}
       </Button>
     </Form>
   )

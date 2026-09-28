@@ -9,6 +9,7 @@ import { acceptLogin } from '@/features/auth/session'
 import { isLoginChallenge } from '@/features/auth/types'
 import type { AuthBundle, LoginChallenge, LoginResult } from '@/features/auth/types'
 import { apiGet, errorMessage } from '@/shared/api/client'
+import { useT } from '@/shared/i18n'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
 
 import styles from './AuthPage.module.css'
@@ -18,7 +19,8 @@ import styles from './AuthPage.module.css'
  * 服务端决定是直接登录还是继续进行两步验证；这里只负责显示结果。
  */
 export function OAuthCallbackPage() {
-  usePageTitle('第三方登录')
+  const t = useT()
+  usePageTitle(t('第三方登录', 'Third-party sign-in'))
   const { provider = '' } = useParams()
   const [params] = useSearchParams()
   const code = params.get('code') ?? ''
@@ -28,9 +30,9 @@ export function OAuthCallbackPage() {
   const navigate = useNavigate()
   const [message, setMessage] = useState<string | null>(null)
   const invalidMessage = !provider
-    ? '登录方式不正确，请返回重新登录'
+    ? t('登录方式不正确，请返回重新登录', 'Wrong sign-in method — go back and try again')
     : !state || (!code && !providerError)
-      ? '授权信息不完整，请返回重新登录'
+      ? t('授权信息不完整，请返回重新登录', 'Incomplete authorization — go back and try again')
       : null
   const [challenge, setChallenge] = useState<LoginChallenge | null>(null)
   const exchange = useRef<{ key: string; request: Promise<LoginResult> } | null>(null)
@@ -65,7 +67,7 @@ export function OAuthCallbackPage() {
         finish(result)
       }
     }).catch((caught: unknown) => {
-      if (active) setMessage(errorMessage(caught, '授权未完成，请重新登录'))
+      if (active) setMessage(errorMessage(caught, t('授权未完成，请重新登录', 'Authorization not completed — sign in again')))
     })
     return () => { active = false }
   // finish/navigate only run once the one-time callback is exchanged.
@@ -76,16 +78,16 @@ export function OAuthCallbackPage() {
     <div className={styles.page}>
       <div className={styles.backdrop} aria-hidden="true" />
       <AuthCard
-        title={challenge ? '验证身份' : '正在完成登录'}
-        subtitle={challenge ? '完成账号的二次验证后即可进入。' : '请稍候，不需要重复授权。'}
-        footer={<Link to="/login">返回登录</Link>}
+        title={challenge ? t('验证身份', 'Verify identity') : t('正在完成登录', 'Finishing sign-in')}
+        subtitle={challenge ? t('完成账号的二次验证后即可进入。', 'One more verification step before you are in.') : t('请稍候，不需要重复授权。', 'One moment — no need to authorize again.')}
+        footer={<Link to="/login">{t('返回登录', 'Back to sign-in')}</Link>}
       >
         {challenge ? (
           <TwoFactorForm challenge={challenge} onAuthenticated={finish} onCancel={() => navigate('/login', { replace: true })} />
         ) : message || invalidMessage ? (
-          <Alert type="error" showIcon title={message || invalidMessage} action={<Link to="/login"><Button size="small">重试</Button></Link>} />
+          <Alert type="error" showIcon title={message || invalidMessage} action={<Link to="/login"><Button size="small">{t('重试', 'Retry')}</Button></Link>} />
         ) : (
-          <div className={styles.loading}><Spin description="正在确认授权..." /></div>
+          <div className={styles.loading}><Spin description={t('正在确认授权...', 'Confirming authorization...')} /></div>
         )}
       </AuthCard>
     </div>

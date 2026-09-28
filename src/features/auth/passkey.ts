@@ -1,3 +1,4 @@
+import { tr } from '@/shared/i18n'
 import type { AuthBundle } from '@/features/auth/types'
 import { apiPost } from '@/shared/api/client'
 
@@ -23,7 +24,7 @@ function encodeBase64Url(buffer: ArrayBuffer): string {
 
 function prepareOptions(payload: PasskeyBegin): PublicKeyCredentialRequestOptions {
   const options = payload.options?.publicKey ?? payload.options?.PublicKey
-  if (!options || typeof options.challenge !== 'string') throw new Error('通行密钥挑战数据不完整')
+  if (!options || typeof options.challenge !== 'string') throw new Error(tr('通行密钥挑战数据不完整', 'Invalid passkey challenge data'))
   const allowCredentials = options.allowCredentials
   return {
     ...options,
@@ -54,23 +55,23 @@ function assertionJSON(credential: PublicKeyCredential): Record<string, unknown>
 }
 
 async function requestAssertion(begin: PasskeyBegin): Promise<Record<string, unknown>> {
-  if (!begin?.flow_token) throw new Error('通行密钥挑战已失效，请重新尝试')
+  if (!begin?.flow_token) throw new Error(tr('通行密钥挑战已失效，请重新尝试', 'Passkey challenge expired — try again'))
   let credential: Credential | null
   try {
     credential = await navigator.credentials.get({ publicKey: prepareOptions(begin) })
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === 'NotAllowedError') {
-      throw new Error('已取消通行密钥验证，或验证超时')
+      throw new Error(tr('已取消通行密钥验证，或验证超时', 'Passkey verification cancelled or timed out'))
     }
     throw error
   }
-  if (!(credential instanceof PublicKeyCredential)) throw new Error('没有获取到有效的通行密钥')
+  if (!(credential instanceof PublicKeyCredential)) throw new Error(tr('没有获取到有效的通行密钥', 'No valid passkey was returned'))
   return assertionJSON(credential)
 }
 
 function requireWebAuthn(): void {
   if (!window.PublicKeyCredential || !navigator.credentials?.get) {
-    throw new Error('当前浏览器不支持通行密钥登录')
+    throw new Error(tr('当前浏览器不支持通行密钥登录', 'This browser does not support passkey sign-in'))
   }
 }
 

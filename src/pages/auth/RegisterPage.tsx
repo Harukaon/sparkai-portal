@@ -8,11 +8,13 @@ import { availableOAuthOptions } from '@/features/auth/oauth'
 import { RegisterForm } from '@/features/auth/components/RegisterForm'
 import { useSystemStatus } from '@/features/auth/hooks'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './AuthPage.module.css'
 
 export function RegisterPage() {
-  usePageTitle('创建账号')
+  const t = useT()
+  usePageTitle(t('创建账号', 'Create account'))
   const system = useSystemStatus()
   const authStatus = useAuthStore((state) => state.status)
   const navigate = useNavigate()
@@ -23,16 +25,16 @@ export function RegisterPage() {
     <div className={styles.page}>
       <div className={styles.backdrop} aria-hidden="true" />
       <AuthCard
-        title="创建账号"
-        subtitle="几步完成注册，开始使用。"
-        footer={<>已有账号？<Link to="/login">去登录</Link></>}
+        title={t('创建账号', 'Create account')}
+        subtitle={t('几步完成注册，开始使用。', 'A few steps and you are in.')}
+        footer={<>{t('已有账号？', 'Already have an account?')} <Link to="/login">{t('去登录', 'Sign in')}</Link></>}
       >
         {system.isPending || authStatus === 'unknown' ? (
-          <div className={styles.loading}><Spin description="正在连接..." /></div>
+          <div className={styles.loading}><Spin description={t('正在连接...', 'Connecting...')} /></div>
         ) : system.isError ? (
           <>
-            <Alert type="error" showIcon title="暂时无法连接服务，请稍后重试" />
-            <Button onClick={() => void system.refetch()}>重试</Button>
+            <Alert type="error" showIcon title={t('暂时无法连接服务，请稍后重试', 'Cannot reach the service right now — try again later')} />
+            <Button onClick={() => void system.refetch()}>{t('重试', 'Retry')}</Button>
           </>
         ) : system.data?.register_enabled &&
           (system.data.password_register_enabled || availableOAuthOptions(system.data).length > 0) ? (
@@ -48,7 +50,7 @@ export function RegisterPage() {
             <AlternativeLogins status={system.data} returnTo="/console" mode="register" />
           </>
         ) : (
-          <Alert type="info" showIcon title="当前未开放注册" description="请联系站点管理员。" />
+          <Alert type="info" showIcon title={t('当前未开放注册', 'Registration is currently closed')} description={t('请联系站点管理员。', 'Please contact the site administrator.')} />
         )}
       </AuthCard>
     </div>

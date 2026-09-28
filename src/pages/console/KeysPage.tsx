@@ -16,13 +16,15 @@ import { KeyRevealModal } from '@/features/keys/components/KeyRevealModal'
 import { fromKey } from '@/features/keys/form'
 import { errorMessage } from '@/shared/api/client'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './KeysPage.module.css'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; key: ApiKey } | null
 
 export function KeysPage() {
-  usePageTitle('API 密钥')
+  const t = useT()
+  usePageTitle(t('API 密钥', 'API Keys'))
   const { message } = AntdApp.useApp()
   const queryClient = useQueryClient()
   const userId = useAuthStore((state) => state.user?.id)
@@ -61,11 +63,11 @@ export function KeysPage() {
     setBusyId(key.id)
     try {
       const full = await fetchFullKey(key.id)
-      if (!(await copyText(full, `已复制「${key.name}」的密钥`))) {
-        setRevealed({ title: `「${key.name}」的密钥`, key: full })
+      if (!(await copyText(full, t(`已复制「${key.name}」的密钥`, `Copied the key of "${key.name}"`)))) {
+        setRevealed({ title: t(`「${key.name}」的密钥`, `Key of "${key.name}"`), key: full })
       }
     } catch (error: unknown) {
-      message.error(errorMessage(error, '获取密钥失败'))
+      message.error(errorMessage(error, t('获取密钥失败', 'Could not fetch the key')))
     } finally {
       setBusyId(null)
     }
@@ -74,7 +76,7 @@ export function KeysPage() {
   async function handleSubmit(input: KeyInput) {
     if (editing?.mode === 'edit') {
       await updateKey(editing.key.id, input)
-      message.success('已保存')
+      message.success(t('已保存', 'Saved'))
       setEditing(null)
       await refresh()
       return
@@ -87,23 +89,23 @@ export function KeysPage() {
     try {
       const latest = (await fetchKeys(1, 1)).items[0]
       if (latest && latest.name === input.name) {
-        setRevealed({ title: '密钥已创建', key: await fetchFullKey(latest.id) })
+        setRevealed({ title: t('密钥已创建', 'Key created'), key: await fetchFullKey(latest.id) })
         return
       }
     } catch {
       // 取不到也不影响创建结果，用户可在列表里点复制
     }
-    message.success('密钥已创建，可在列表中复制')
+    message.success(t('密钥已创建，可在列表中复制', 'Key created — copy it from the list'))
   }
 
   async function toggle(key: ApiKey, enabled: boolean) {
     setBusyId(key.id)
     try {
       await setKeyStatus(key.id, enabled)
-      message.success(enabled ? '已启用' : '已停用')
+      message.success(enabled ? t('已启用', 'Enabled') : t('已停用', 'Disabled'))
       await refresh()
     } catch (error: unknown) {
-      message.error(errorMessage(error, '操作失败'))
+      message.error(errorMessage(error, t('操作失败', 'Action failed')))
     } finally {
       setBusyId(null)
     }
@@ -112,64 +114,64 @@ export function KeysPage() {
   async function remove(key: ApiKey) {
     try {
       await deleteKey(key.id)
-      message.success('已删除')
+      message.success(t('已删除', 'Deleted'))
       if (keys.data?.items.length === 1 && page > 1) setPage(page - 1)
       await refresh()
     } catch (error: unknown) {
-      message.error(errorMessage(error, '删除失败'))
+      message.error(errorMessage(error, t('删除失败', 'Delete failed')))
     }
   }
 
   const columns: ColumnsType<ApiKey> = [
     {
-      title: '名称',
+      title: t('名称', 'Name'),
       key: 'name',
       render: (_value, key) => (
         <span className={styles.stack}>
           <strong>{key.name}</strong>
-          <Tag className={styles.tag} color={KEY_STATUS[key.status]?.color}>{KEY_STATUS[key.status]?.label ?? '未知状态'}</Tag>
+          <Tag className={styles.tag} color={KEY_STATUS[key.status]?.color}>{t(...(KEY_STATUS[key.status]?.label ?? ['未知状态', 'Unknown']))}</Tag>
         </span>
       ),
     },
     {
-      title: '密钥',
+      title: t('密钥', 'Key'),
       key: 'key',
       render: (_value, key) => (
         <span className={styles.keyCell}>
           <code>{withPrefix(key.key)}</code>
-          <Tooltip title="复制完整密钥">
-            <Button type="text" size="small" icon={<CopyOutlined />} loading={busyId === key.id} aria-label={`复制「${key.name}」的完整密钥`} onClick={() => void copyKey(key)} />
+          <Tooltip title={t('复制完整密钥', 'Copy the full key')}>
+            <Button type="text" size="small" icon={<CopyOutlined />} loading={busyId === key.id} aria-label={t(`复制「${key.name}」的完整密钥`, `Copy the full key of "${key.name}"`)} onClick={() => void copyKey(key)} />
           </Tooltip>
         </span>
       ),
     },
     {
-      title: '额度',
+      title: t('额度', 'Quota'),
       key: 'quota',
       render: (_value, key) => (
         <span className={styles.stack}>
-          <span>{key.unlimited_quota ? '不单独限制' : `剩余 ${formatQuota(key.remain_quota, format)}`}</span>
-          <span className={styles.muted}>已用 {formatQuota(key.used_quota, format)}</span>
+          <span>{key.unlimited_quota ? t('不单独限制', 'No separate limit') : t(`剩余 ${formatQuota(key.remain_quota, format)}`, `${formatQuota(key.remain_quota, format)} left`)}</span>
+          <span className={styles.muted}>{t('已用', 'Used')} {formatQuota(key.used_quota, format)}</span>
         </span>
       ),
     },
     {
-      title: '分组',
+      title: t('分组', 'Group'),
       dataIndex: 'group',
-      render: (group: string) => group || <span className={styles.muted}>跟随账号</span>,
+      render: (group: string) => group || <span className={styles.muted}>{t('跟随账号', 'Follows account')}</span>,
     },
     {
-      title: '有效期',
+      title: t('有效期', 'Expiry'),
       dataIndex: 'expired_time',
       render: (value: number) =>
         value === -1 ? (
-          <span className={styles.muted}>永不过期</span>
+          <span className={styles.muted}>{t('永不过期', 'Never expires')}</span>
         ) : (
           <span className={value * 1000 < Date.now() ? styles.expired : undefined}>{dayjs.unix(value).format('YYYY-MM-DD HH:mm')}</span>
         ),
     },
     {
-      title: '启用',
+      title: t('启用', 'Enabled'),
       key: 'status',
       width: 72,
       render: (_value, key) => (
@@ -178,7 +180,7 @@ export function KeysPage() {
           checked={key.status === 1}
           disabled={key.status === 3 || key.status === 4}
           loading={busyId === key.id}
-          aria-label={key.status === 1 ? `停用「${key.name}」` : `启用「${key.name}」`}
+          aria-label={key.status === 1 ? t(`停用「${key.name}」`, `Disable "${key.name}"`) : t(`启用「${key.name}」`, `Enable "${key.name}"`)}
           onChange={(checked) => void toggle(key, checked)}
         />
       ),
@@ -189,18 +191,18 @@ export function KeysPage() {
       width: 96,
       render: (_value, key) => (
         <span className={styles.actions}>
-          <Tooltip title="编辑">
-            <Button type="text" size="small" icon={<EditOutlined />} aria-label={`编辑「${key.name}」`} onClick={() => setEditing({ mode: 'edit', key })} />
+          <Tooltip title={t('编辑', 'Edit')}>
+            <Button type="text" size="small" icon={<EditOutlined />} aria-label={t(`编辑「${key.name}」`, `Edit "${key.name}"`)} onClick={() => setEditing({ mode: 'edit', key })} />
           </Tooltip>
           <Popconfirm
-            title="删除这个密钥？"
-            description="使用它的程序会立即无法调用，删除后不能恢复。"
-            okText="删除"
+            title={t('删除这个密钥？', 'Delete this key?')}
+            description={t('使用它的程序会立即无法调用，删除后不能恢复。', 'Programs using it will fail immediately. This cannot be undone.')}
+            okText={t('删除', 'Delete')}
             okButtonProps={{ danger: true }}
-            cancelText="取消"
+            cancelText={t('取消', 'Cancel')}
             onConfirm={() => remove(key)}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label={`删除「${key.name}」`} />
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label={t(`删除「${key.name}」`, `Delete "${key.name}"`)} />
           </Popconfirm>
         </span>
       ),
@@ -210,24 +212,24 @@ export function KeysPage() {
   return (
     <div>
       <PageHead
-        title="API 密钥"
-        description="用密钥调用接口。每个项目单独建一个，出问题时停用它不影响别的项目。"
-        actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ mode: 'create' })}>创建密钥</Button>}
+        title={t('API 密钥', 'API Keys')}
+        description={t('用密钥调用接口。每个项目单独建一个，出问题时停用它不影响别的项目。', 'Call the API with keys. Create one per project so you can disable one without affecting the rest.')}
+        actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ mode: 'create' })}>{t('创建密钥', 'Create key')}</Button>}
       />
 
-      <section className={styles.endpoints} aria-label="接口地址">
+      <section className={styles.endpoints} aria-label={t('接口地址', 'API endpoints')}>
         <div>
-          <span className={styles.endpointLabel}>OpenAI 兼容</span>
-          <Typography.Text className={styles.endpoint} copyable={{ text: `${origin}/v1`, tooltips: ['复制地址', '已复制'] }}>{origin}/v1</Typography.Text>
+          <span className={styles.endpointLabel}>{t('OpenAI 兼容', 'OpenAI-compatible')}</span>
+          <Typography.Text className={styles.endpoint} copyable={{ text: `${origin}/v1`, tooltips: [t('复制地址', 'Copy URL'), t('已复制', 'Copied')] }}>{origin}/v1</Typography.Text>
         </div>
         <div>
-          <span className={styles.endpointLabel}>Anthropic 兼容</span>
-          <Typography.Text className={styles.endpoint} copyable={{ text: origin, tooltips: ['复制地址', '已复制'] }}>{origin}</Typography.Text>
+          <span className={styles.endpointLabel}>{t('Anthropic 兼容', 'Anthropic-compatible')}</span>
+          <Typography.Text className={styles.endpoint} copyable={{ text: origin, tooltips: [t('复制地址', 'Copy URL'), t('已复制', 'Copied')] }}>{origin}</Typography.Text>
         </div>
       </section>
 
       {keys.isError ? (
-        <Alert type="error" showIcon title="密钥列表暂时获取不到" action={<Button size="small" onClick={() => void keys.refetch()}>重试</Button>} />
+        <Alert type="error" showIcon title={t('密钥列表暂时获取不到', 'Could not load the key list')} action={<Button size="small" onClick={() => void keys.refetch()}>{t('重试', 'Retry')}</Button>} />
       ) : (
         <Table<ApiKey>
           className={styles.table}
@@ -236,7 +238,7 @@ export function KeysPage() {
           dataSource={keys.data?.items ?? []}
           loading={keys.isFetching}
           scroll={{ x: 900 }}
-          locale={{ emptyText: '还没有密钥。点右上角「创建密钥」，拿到后就能开始调用。' }}
+          locale={{ emptyText: t('还没有密钥。点右上角「创建密钥」，拿到后就能开始调用。', 'No keys yet. Click "Create key" above to get started.') }}
           pagination={{
             current: page,
             pageSize,

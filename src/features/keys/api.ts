@@ -2,11 +2,11 @@ import type { PageResult } from '@/features/console/usage'
 import { apiDelete, apiGet, apiPost, apiPut } from '@/shared/api/client'
 
 /** 1 启用 / 2 已停用 / 3 已过期 / 4 额度用完 */
-export const KEY_STATUS: Record<number, { label: string; color?: string }> = {
-  1: { label: '启用中', color: 'success' },
-  2: { label: '已停用' },
-  3: { label: '已过期', color: 'warning' },
-  4: { label: '额度用完', color: 'error' },
+export const KEY_STATUS: Record<number, { label: [string, string]; color?: string }> = {
+  1: { label: ['启用中', 'Active'] as [string, string], color: 'success' },
+  2: { label: ['已停用', 'Disabled'] as [string, string] },
+  3: { label: ['已过期', 'Expired'] as [string, string], color: 'warning' },
+  4: { label: ['额度用完', 'Quota used up'] as [string, string], color: 'error' },
 }
 
 export interface ApiKey {

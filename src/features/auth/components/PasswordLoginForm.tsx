@@ -6,6 +6,7 @@ import { Turnstile } from '@/features/auth/components/Turnstile'
 import { isLoginChallenge } from '@/features/auth/types'
 import type { AuthBundle, LoginChallenge, SystemStatus } from '@/features/auth/types'
 import { errorMessage } from '@/shared/api/client'
+import { useT } from '@/shared/i18n'
 
 interface LoginValues {
   username: string
@@ -27,6 +28,7 @@ export function PasswordLoginForm({
   onAuthenticated,
   onChallenge,
 }: PasswordLoginFormProps) {
+  const t = useT()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -36,7 +38,7 @@ export function PasswordLoginForm({
 
   async function handleFinish(values: LoginValues) {
     if (turnstileSiteKey && !turnstileToken) {
-      setError('请先完成下方的人机验证')
+      setError(t('请先完成下方的人机验证', 'Please complete the human check below first'))
       return
     }
     setSubmitting(true)
@@ -54,7 +56,7 @@ export function PasswordLoginForm({
         onAuthenticated(result)
       }
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '登录失败，请稍后重试'))
+      setError(errorMessage(caught, t('登录失败，请稍后重试', 'Sign-in failed — try again later')))
       // 人机验证令牌只能用一次，失败后换一个新的
       if (turnstileSiteKey) {
         setTurnstileToken('')
@@ -76,16 +78,16 @@ export function PasswordLoginForm({
     >
       <Form.Item
         name="username"
-        label="用户名或邮箱"
-        rules={[{ required: true, whitespace: true, message: '请输入用户名或邮箱' }]}
+        label={t('用户名或邮箱', 'Username or email')}
+        rules={[{ required: true, whitespace: true, message: t('请输入用户名或邮箱', 'Enter your username or email') }]}
       >
-        <Input autoComplete="username" placeholder="用户名或邮箱" autoFocus={!initialUsername} />
+        <Input autoComplete="username" placeholder={t('用户名或邮箱', 'Username or email')} autoFocus={!initialUsername} />
       </Form.Item>
 
-      <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
+      <Form.Item name="password" label={t('密码', 'Password')} rules={[{ required: true, message: t('请输入密码', 'Enter your password') }]}>
         <Input.Password
           autoComplete="current-password"
-          placeholder="密码"
+          placeholder={t('密码', 'Password')}
           autoFocus={Boolean(initialUsername)}
         />
       </Form.Item>
@@ -103,7 +105,7 @@ export function PasswordLoginForm({
       ) : null}
 
       <Button type="primary" htmlType="submit" block loading={submitting}>
-        登录
+        {t('登录', 'Sign in')}
       </Button>
     </Form>
   )

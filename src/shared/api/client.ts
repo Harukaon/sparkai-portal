@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 
+import { currentLang, tr } from '@/shared/i18n'
 import { API_BASE_URL } from '@/shared/lib/env'
 
 declare module 'axios' {
@@ -61,11 +62,11 @@ export const http = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept-Language': 'zh-CN',
   },
 })
 
 http.interceptors.request.use(async (config) => {
+  config.headers.set('Accept-Language', currentLang() === 'zh' ? 'zh-CN' : 'en')
   if (!config.skipAuth && authHooks) {
     const token = await authHooks.getAccessToken()
     if (token) {
@@ -101,19 +102,19 @@ function toApiError(error: AxiosError<ApiEnvelope<unknown>>): ApiError {
   if (error.response) {
     const { status, data } = error.response
     if (status === 429) {
-      return new ApiError('操作太频繁了，请稍等一会儿再试', status, data?.code)
+      return new ApiError(tr('操作太频繁了，请稍等一会儿再试', 'Too many requests. Please try again shortly.'), status, data?.code)
     }
-    return new ApiError(data?.message || `请求失败（${status}）`, status, data?.code)
+    return new ApiError(data?.message || tr(`请求失败（${status}）`, `Request failed (${status})`), status, data?.code)
   }
   if (error.code === 'ECONNABORTED') {
-    return new ApiError('请求超时，请检查网络后重试', 0)
+    return new ApiError(tr('请求超时，请检查网络后重试', 'Request timed out. Check your network and try again.'), 0)
   }
-  return new ApiError('连不上服务器，请检查网络后重试', 0)
+  return new ApiError(tr('连不上服务器，请检查网络后重试', 'Cannot reach the server. Check your network and try again.'), 0)
 }
 
 function unwrap<T>(envelope: ApiEnvelope<T> | undefined, status: number): T {
   if (!envelope || envelope.success !== true) {
-    throw new ApiError(envelope?.message || '操作失败，请稍后重试', status, envelope?.code)
+    throw new ApiError(envelope?.message || tr('操作失败，请稍后重试', 'Something went wrong. Please try again later.'), status, envelope?.code)
   }
   return envelope.data as T
 }
@@ -147,7 +148,7 @@ export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Pr
 }
 
 /** 把任意异常转成给人看的一句话 */
-export function errorMessage(error: unknown, fallback = '操作失败，请稍后重试'): string {
+export function errorMessage(error: unknown, fallback = tr('操作失败，请稍后重试', 'Something went wrong. Please try again later.')): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error && error.message) return error.message
   return fallback

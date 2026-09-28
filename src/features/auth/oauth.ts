@@ -1,3 +1,4 @@
+import { tr } from '@/shared/i18n'
 import { getAffiliateCode } from '@/features/auth/affiliate'
 import { safeRedirect } from '@/features/auth/redirect'
 import type { CustomOAuthProvider, SystemStatus } from '@/features/auth/types'
@@ -14,7 +15,7 @@ export function availableOAuthOptions(status: SystemStatus): OAuthOption[] {
   if (status.github_oauth && status.github_client_id) options.push({ slug: 'github', name: 'GitHub' })
   if (status.discord_oauth && status.discord_client_id) options.push({ slug: 'discord', name: 'Discord' })
   if (status.oidc_enabled && status.oidc_client_id && status.oidc_authorization_endpoint) {
-    options.push({ slug: 'oidc', name: status.oidc_display_name || '企业账号' })
+    options.push({ slug: 'oidc', name: status.oidc_display_name || tr('企业账号', 'Enterprise SSO') })
   }
   if (status.linuxdo_oauth && status.linuxdo_client_id) options.push({ slug: 'linuxdo', name: 'Linux DO' })
   if (status.telegram_oauth && status.telegram_oauth_configured) {
@@ -31,7 +32,7 @@ export function availableOAuthOptions(status: SystemStatus): OAuthOption[] {
 function oauthUrl(endpoint: string, params: Record<string, string>): string {
   const url = new URL(endpoint)
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) {
-    throw new Error('第三方登录地址不是安全的 HTTPS 地址')
+    throw new Error(tr('第三方登录地址不是安全的 HTTPS 地址', 'The OAuth URL is not a secure HTTPS address'))
   }
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value)
   return url.toString()
@@ -94,7 +95,7 @@ export function authorizationUrl(
       }
     }
   }
-  throw new Error('该登录方式未启用或尚未配置完整')
+  throw new Error(tr('该登录方式未启用或尚未配置完整', 'This sign-in method is not enabled or fully configured'))
 }
 
 const RETURN_PREFIX = 'relay.oauth.return.'
@@ -126,7 +127,7 @@ export async function startOAuthLogin(
     intent: 'login',
     aff: getAffiliateCode() || undefined,
   }, { skipAuth: true })
-  if (!flow?.flow_token) throw new Error('第三方登录初始化失败，请重试')
+  if (!flow?.flow_token) throw new Error(tr('第三方登录初始化失败，请重试', 'OAuth initialization failed — try again'))
   const url = authorizationUrl(provider, flow.flow_token, status, window.location.origin, flow.authorization_url)
   rememberReturn(flow.flow_token, returnTo)
   return url

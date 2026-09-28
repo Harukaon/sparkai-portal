@@ -1,14 +1,14 @@
 import { apiGet } from '@/shared/api/client'
 
 /** New API 日志类型：普通用户能看到的记录 */
-export const LOG_TYPES: Record<number, string> = {
-  1: '充值',
-  2: '消费',
-  3: '管理',
-  4: '系统',
-  5: '错误',
-  6: '退款',
-  7: '登录',
+export const LOG_TYPES: Record<number, [string, string]> = {
+  1: ['充值', 'Top-up'],
+  2: ['消费', 'Usage'],
+  3: ['管理', 'Manage'],
+  4: ['系统', 'System'],
+  5: ['错误', 'Error'],
+  6: ['退款', 'Refund'],
+  7: ['登录', 'Sign-in'],
 }
 
 export interface UsageLog {
@@ -44,11 +44,11 @@ export interface LogFilters {
 
 export type RangePreset = 'today' | '7d' | '30d' | 'all'
 
-export const RANGE_LABELS: Record<RangePreset, string> = {
-  today: '今天',
-  '7d': '近 7 天',
-  '30d': '近 30 天',
-  all: '全部时间',
+export const RANGE_LABELS: Record<RangePreset, [string, string]> = {
+  today: ['今天', 'Today'],
+  '7d': ['近 7 天', 'Last 7 days'],
+  '30d': ['近 30 天', 'Last 30 days'],
+  all: ['全部时间', 'All time'],
 }
 
 /** 按浏览器本地时区的整天计算；New API 存的是 Unix 秒。 */

@@ -17,6 +17,7 @@ import {
 } from '@/features/console/usage'
 import type { LogFilters, RangePreset } from '@/features/console/usage'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './LogsPage.module.css'
 
@@ -40,7 +41,8 @@ function toFilters(values: FilterValues): LogFilters {
 }
 
 export function LogsPage() {
-  usePageTitle('请求记录')
+  const t = useT()
+  usePageTitle(t('请求记录', 'Request logs'))
   const userId = useAuthStore((state) => state.user?.id)
   const format = useQuotaFormat()
   const [form] = Form.useForm<FilterValues>()
@@ -73,61 +75,61 @@ export function LogsPage() {
   return (
     <div>
       <PageHead
-        title="请求记录"
-        description="每一次调用的模型、用量和花费；点开一行可查看请求 ID 和说明。"
+        title={t('请求记录', 'Request logs')}
+        description={t('每一次调用的模型、用量和花费；点开一行可查看请求 ID 和说明。', 'Model, tokens, and cost of every call. Expand a row for the request ID and notes.')}
         actions={
           <Button icon={<ReloadOutlined />} loading={logs.isFetching} onClick={() => { void logs.refetch(); void spend.refetch() }}>
-            刷新
+            {t('刷新', 'Refresh')}
           </Button>
         }
       />
 
       <Form<FilterValues> form={form} className={styles.filters} initialValues={INITIAL} onFinish={apply} layout="vertical">
-        <Form.Item name="range" label="时间">
+        <Form.Item name="range" label={t('时间', 'Time')}>
           <Select options={Object.entries(RANGE_LABELS).map(([value, label]) => ({ value, label }))} />
         </Form.Item>
-        <Form.Item name="type" label="类型">
+        <Form.Item name="type" label={t('类型', 'Type')}>
           <Select
-            options={[{ value: 0, label: '全部类型' }, ...Object.entries(LOG_TYPES).map(([value, label]) => ({ value: Number(value), label }))]}
+            options={[{ value: 0, label: t('全部类型', 'All types') }, ...Object.entries(LOG_TYPES).map(([value, label]) => ({ value: Number(value), label: t(...label) }))]}
           />
         </Form.Item>
-        <Form.Item name="model" label="模型">
-          <Input placeholder="输入模型名的一部分" allowClear />
+        <Form.Item name="model" label={t('模型', 'Model')}>
+          <Input placeholder={t('输入模型名的一部分', 'Part of a model name')} allowClear />
         </Form.Item>
-        <Form.Item name="token" label="密钥名称">
-          <Input placeholder="完整的密钥名称" allowClear />
+        <Form.Item name="token" label={t('密钥名称', 'Key name')}>
+          <Input placeholder={t('完整的密钥名称', 'The exact key name')} allowClear />
         </Form.Item>
         <div className={styles.buttons}>
-          <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>查询</Button>
-          <Button onClick={reset}>重置</Button>
+          <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>{t('查询', 'Apply')}</Button>
+          <Button onClick={reset}>{t('重置', 'Reset')}</Button>
         </div>
       </Form>
 
       <div className={styles.summary}>
         <span>
-          {RANGE_LABELS[applied.range]}消费合计
+          {t(...RANGE_LABELS[applied.range])} {t('消费合计', 'spend total')}
           <strong>{spend.data ? formatQuota(spend.data.quota, format) : spend.isError ? '—' : '…'}</strong>
         </span>
         <span>
-          共 <strong>{(logs.data?.total ?? 0).toLocaleString('zh-CN')}</strong> 条记录
+          {t('共', '')} <strong>{(logs.data?.total ?? 0).toLocaleString()}</strong> {t('条记录', 'records in total')}
         </span>
       </div>
 
       {logs.isError ? (
-        <Alert type="error" showIcon title="请求记录暂时获取不到" action={<Button size="small" onClick={() => void logs.refetch()}>重试</Button>} />
+        <Alert type="error" showIcon title={t('请求记录暂时获取不到', 'Logs unavailable right now')} action={<Button size="small" onClick={() => void logs.refetch()}>{t('重试', 'Retry')}</Button>} />
       ) : (
         <UsageLogTable
           logs={logs.data?.items ?? []}
           format={format}
           loading={logs.isFetching}
-          emptyText="这个范围内没有记录，换个时间或筛选条件试试"
+          emptyText={t('这个范围内没有记录，换个时间或筛选条件试试', 'No records in this range — try another time or filter')}
           pagination={{
             current: page,
             pageSize,
             total: logs.data?.total ?? 0,
             showSizeChanger: true,
             pageSizeOptions: [10, 20, 50, 100],
-            showTotal: (total) => `共 ${total} 条`,
+            showTotal: (total) => t(`共 ${total} 条`, `${total} in total`),
             onChange: (nextPage, nextSize) => {
               setPage(nextSize === pageSize ? nextPage : 1)
               setPageSize(nextSize)

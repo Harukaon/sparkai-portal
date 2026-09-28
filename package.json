@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "AI 接口中转站 · 用户前台",
+  "description": "SparkAI 火花AI · 用户前台",
   "engines": {
     "node": ">=22"
   },

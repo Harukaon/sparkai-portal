@@ -13,6 +13,7 @@ import type { QuotaFormat } from '@/features/console/quota'
 import { fetchUsageLogs, fetchWeeklyUsage } from '@/features/console/usage'
 import type { DayUsage } from '@/features/console/usage'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './OverviewPage.module.css'
 
@@ -24,6 +25,7 @@ const CHART_BOTTOM = 210
 const CHART_TICKS = 4
 
 function WeeklySpendChart({ days, peak, format }: { days: DayUsage[]; peak: number; format: QuotaFormat }) {
+  const t = useT()
   const frameRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(720)
 
@@ -65,7 +67,7 @@ function WeeklySpendChart({ days, peak, format }: { days: DayUsage[]; peak: numb
         height={CHART_HEIGHT}
         viewBox={`0 0 ${chartWidth} ${CHART_HEIGHT}`}
         role="img"
-        aria-label={`近7天消费趋势图，纵轴为人民币，横轴为日期。${chartDescription}`}
+        aria-label={t(`近7天消费趋势图，纵轴为人民币，横轴为日期。${chartDescription}`, `Last-7-day spend chart; CNY on Y, dates on X. ${chartDescription}`)}
       >
         {tickValues.map((value, index) => {
           const y = CHART_TOP + (plotHeight * index) / CHART_TICKS
@@ -81,7 +83,7 @@ function WeeklySpendChart({ days, peak, format }: { days: DayUsage[]; peak: numb
         {points.map(({ day, x, y }) => (
           <g key={day.key}>
             <circle className={styles.chartPoint} cx={x} cy={y} r={4}>
-              <title>{`${day.label}：消费 ${formatQuota(day.quota, format)}，${day.count} 次请求`}</title>
+              <title>{t(`${day.label}：消费 ${formatQuota(day.quota, format)}，${day.count} 次请求`, `${day.label}: ${formatQuota(day.quota, format)}, ${day.count} requests`)}</title>
             </circle>
             <text className={styles.chartDayLabel} x={x} y={CHART_HEIGHT - 8}>{day.label}</text>
           </g>
@@ -92,7 +94,8 @@ function WeeklySpendChart({ days, peak, format }: { days: DayUsage[]; peak: numb
 }
 
 export function OverviewPage() {
-  usePageTitle('总览')
+  const t = useT()
+  usePageTitle(t('总览', 'Overview'))
   const storedUser = useAuthStore((state) => state.user)
   const updateUser = useAuthStore((state) => state.updateUser)
   const userId = storedUser?.id
@@ -128,21 +131,21 @@ export function OverviewPage() {
   const weekCount = days.reduce((sum, day) => sum + day.count, 0)
 
   const stats = [
-    { label: '可用余额', value: formatQuota(user?.quota, format) },
-    { label: '累计消费', value: formatQuota(user?.used_quota, format) },
-    { label: '累计请求', value: (user?.request_count ?? 0).toLocaleString('zh-CN') + ' 次' },
-    { label: '当前分组', value: user?.group || 'default' },
+    { label: t('可用余额', 'Balance'), value: formatQuota(user?.quota, format) },
+    { label: t('累计消费', 'Total spent'), value: formatQuota(user?.used_quota, format) },
+    { label: t('累计请求', 'Total requests'), value: (user?.request_count ?? 0).toLocaleString() + t(' 次', '') },
+    { label: t('当前分组', 'Group'), value: user?.group || 'default' },
   ]
 
   return (
     <div>
       <PageHead
-        title="总览"
-        description="余额、消费和最近调用，一眼看清账号状态。"
+        title={t('总览', 'Overview')}
+        description={t('余额、消费和最近调用，一眼看清账号状态。', 'Balance, spending, and recent calls at a glance.')}
         actions={
           <>
-            <Link to="/models"><Button>查看模型价格</Button></Link>
-            <Link to="/console/keys"><Button type="primary">管理 API 密钥</Button></Link>
+            <Link to="/models"><Button>{t('查看模型价格', 'Model prices')}</Button></Link>
+            <Link to="/console/keys"><Button type="primary">{t('管理 API 密钥', 'Manage API keys')}</Button></Link>
           </>
         }
       />
@@ -152,8 +155,8 @@ export function OverviewPage() {
           className={styles.alert}
           type="warning"
           showIcon
-          title="账号信息没有刷新成功，以下为登录时的数据"
-          action={<Button size="small" onClick={() => void profile.refetch()}>重试</Button>}
+          title={t('账号信息没有刷新成功，以下为登录时的数据', 'Could not refresh account info — showing data from sign-in')}
+          action={<Button size="small" onClick={() => void profile.refetch()}>{t('重试', 'Retry')}</Button>}
         />
       ) : null}
 
@@ -168,22 +171,22 @@ export function OverviewPage() {
 
       <section className={styles.panel} aria-labelledby="weekly-title">
         <div className={styles.panelHead}>
-          <h2 id="weekly-title">近 7 天消费</h2>
+          <h2 id="weekly-title">{t('近 7 天消费', 'Last 7 days')}</h2>
           {exportEnabled && weekly.data ? (
-            <span>{formatQuota(weekQuota, format)} · {weekCount.toLocaleString('zh-CN')} 次请求</span>
+            <span>{formatQuota(weekQuota, format)} · {weekCount.toLocaleString()} {t('次请求', 'requests')}</span>
           ) : null}
         </div>
         {!exportEnabled ? (
-          <p className={styles.note}>站点没有开启用量统计，可以在请求记录里查看每一次调用。</p>
+          <p className={styles.note}>{t('站点没有开启用量统计，可以在请求记录里查看每一次调用。', 'Usage stats are off for this site — check every call in the logs page.')}</p>
         ) : weekly.isPending ? (
           <Skeleton active paragraph={{ rows: 3 }} />
         ) : weekly.isError ? (
-          <Alert type="error" showIcon title="用量统计暂时获取不到" action={<Button size="small" onClick={() => void weekly.refetch()}>重试</Button>} />
+          <Alert type="error" showIcon title={t('用量统计暂时获取不到', 'Usage stats unavailable right now')} action={<Button size="small" onClick={() => void weekly.refetch()}>{t('重试', 'Retry')}</Button>} />
         ) : (
           <>
             <WeeklySpendChart days={days} peak={peak} format={format} />
             <p className={styles.note}>
-              {weekQuota > 0 ? '统计按小时汇总，可能比请求记录晚几分钟。' : '近 7 天还没有消费。'}
+              {weekQuota > 0 ? t('统计按小时汇总，可能比请求记录晚几分钟。', 'Hourly rollup — may lag the logs by a few minutes.') : t('近 7 天还没有消费。', 'No spend in the last 7 days.')}
             </p>
           </>
         )}
@@ -191,17 +194,17 @@ export function OverviewPage() {
 
       <section className={styles.panel} aria-labelledby="recent-title">
         <div className={styles.panelHead}>
-          <h2 id="recent-title">最近调用</h2>
-          <Link to="/console/logs">查看全部</Link>
+          <h2 id="recent-title">{t('最近调用', 'Recent calls')}</h2>
+          <Link to="/console/logs">{t('查看全部', 'View all')}</Link>
         </div>
         {recent.isError ? (
-          <Alert type="error" showIcon title="最近调用暂时获取不到" action={<Button size="small" onClick={() => void recent.refetch()}>重试</Button>} />
+          <Alert type="error" showIcon title={t('最近调用暂时获取不到', 'Recent calls unavailable right now')} action={<Button size="small" onClick={() => void recent.refetch()}>{t('重试', 'Retry')}</Button>} />
         ) : (
           <UsageLogTable
             logs={recent.data?.items ?? []}
             format={format}
             loading={recent.isPending}
-            emptyText="还没有调用记录。用 API 密钥发起第一次请求后，会显示在这里。"
+            emptyText={t('还没有调用记录。用 API 密钥发起第一次请求后，会显示在这里。', 'No calls yet. Your first request with an API key will show up here.')}
           />
         )}
       </section>

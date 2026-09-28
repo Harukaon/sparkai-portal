@@ -9,11 +9,13 @@ import { amountToQuota, formatQuota, quotaToAmount, useQuotaFormat } from '@/fea
 import { fetchInviteCode, inviteLink, transferInviteReward } from '@/features/invite/api'
 import { errorMessage } from '@/shared/api/client'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
+import { useT } from '@/shared/i18n'
 
 import styles from './InvitePage.module.css'
 
 export function InvitePage() {
-  usePageTitle('邀请奖励')
+  const t = useT()
+  usePageTitle(t('邀请奖励', 'Referrals'))
   const { message } = AntdApp.useApp()
   const queryClient = useQueryClient()
   const storedUser = useAuthStore((state) => state.user)
@@ -42,18 +44,18 @@ export function InvitePage() {
     const value = amount ?? pendingAmount
     const quota = Math.min(amountToQuota(value, format), pending)
     if (quota < minQuota) {
-      setError(`每次最少转入 ${formatQuota(minQuota, format)}`)
+      setError(t(`每次最少转入 ${formatQuota(minQuota, format)}`, `Minimum per transfer: ${formatQuota(minQuota, format)}`))
       return
     }
     setTransferring(true)
     setError(null)
     try {
       await transferInviteReward(quota)
-      message.success(`已转入余额 ${formatQuota(quota, format)}`)
+      message.success(t(`已转入余额 ${formatQuota(quota, format)}`, `Moved ${formatQuota(quota, format)} to balance`))
       setAmount(null)
       await queryClient.invalidateQueries({ queryKey: ['current-user', userId] })
     } catch (caught: unknown) {
-      setError(errorMessage(caught, '转入失败，请稍后重试'))
+      setError(errorMessage(caught, t('转入失败，请稍后重试', 'Transfer failed — try again later')))
     } finally {
       setTransferring(false)
     }
@@ -61,61 +63,61 @@ export function InvitePage() {
 
   return (
     <div>
-      <PageHead title="邀请奖励" description="把邀请链接发给朋友，对方通过链接注册后，你可以获得奖励额度。" />
+      <PageHead title={t('邀请奖励', 'Referrals')} description={t('把邀请链接发给朋友，对方通过链接注册后，你可以获得奖励额度。', 'Share your invite link; earn credit when friends sign up through it.')} />
 
-      <section className={styles.linkCard} aria-label="我的邀请链接">
-        <span className={styles.label}>我的邀请链接</span>
+      <section className={styles.linkCard} aria-label={t('我的邀请链接', 'My invite link')}>
+        <span className={styles.label}>{t('我的邀请链接', 'My invite link')}</span>
         {code.isPending ? (
           <Skeleton.Input active block />
         ) : code.isError ? (
-          <Alert type="error" showIcon title="邀请链接暂时获取不到" action={<Button size="small" onClick={() => void code.refetch()}>重试</Button>} />
+          <Alert type="error" showIcon title={t('邀请链接暂时获取不到', 'Could not load the invite link')} action={<Button size="small" onClick={() => void code.refetch()}>{t('重试', 'Retry')}</Button>} />
         ) : (
           <div className={styles.linkRow}>
-            <Typography.Text className={styles.link} copyable={{ text: link, tooltips: ['复制链接', '已复制'] }}>
+            <Typography.Text className={styles.link} copyable={{ text: link, tooltips: [t('复制链接', 'Copy link'), t('已复制', 'Copied')] }}>
               {link}
             </Typography.Text>
           </div>
         )}
-        <span className={styles.hint}>邀请码：{code.data ?? '—'}。朋友打开链接后注册，邀请关系会自动记录。</span>
+        <span className={styles.hint}>{t('邀请码：', 'Invite code:')}{' '}{code.data ?? '—'}. {t('朋友打开链接后注册，邀请关系会自动记录。', 'The referral is recorded automatically when friends sign up via the link.')}</span>
       </section>
 
       <dl className={styles.stats}>
         <div>
-          <dt>已邀请</dt>
-          <dd>{(user?.aff_count ?? 0).toLocaleString('zh-CN')} 人</dd>
+          <dt>{t('已邀请', 'Invited')}</dt>
+          <dd>{(user?.aff_count ?? 0).toLocaleString()}</dd>
         </div>
         <div>
-          <dt>待转入奖励</dt>
+          <dt>{t('待转入奖励', 'Pending reward')}</dt>
           <dd>{formatQuota(pending, format)}</dd>
         </div>
         <div>
-          <dt>累计获得</dt>
+          <dt>{t('累计获得', 'Total earned')}</dt>
           <dd>{formatQuota(user?.aff_history_quota ?? 0, format)}</dd>
         </div>
       </dl>
 
       <section className={styles.transfer} aria-labelledby="transfer-title">
-        <h2 id="transfer-title">转入余额</h2>
-        <p className={styles.hint}>奖励转入可用余额后即可用于调用，每次最少 {formatQuota(minQuota, format)}。</p>
+        <h2 id="transfer-title">{t('转入余额', 'Move to balance')}</h2>
+        <p className={styles.hint}>{t('奖励转入可用余额后即可用于调用，每次最少', 'Once moved to balance, rewards can be used for calls. Minimum per transfer')}{' '}{formatQuota(minQuota, format)}.</p>
         <Space.Compact className={styles.transferRow}>
           <InputNumber
             min={0}
             max={pendingAmount}
             precision={2}
             value={amount}
-            placeholder={pending > 0 ? `全部 ${pendingAmount}` : '暂无可转入奖励'}
+            placeholder={pending > 0 ? t(`全部 ${pendingAmount}`, `All ${pendingAmount}`) : t('暂无可转入奖励', 'Nothing to move yet')}
             onChange={(value) => { setAmount(typeof value === 'number' ? value : null); setError(null) }}
             disabled={pending < minQuota}
-            aria-label="转入金额（元）"
+            aria-label={t('转入金额（元）', 'Amount to move (CNY)')}
             style={{ width: '100%' }}
           />
-          <Space.Addon>元</Space.Addon>
+          <Space.Addon>{t('元', 'CNY')}</Space.Addon>
           <Button type="primary" loading={transferring} disabled={pending < minQuota} onClick={() => void transfer()}>
-            转入余额
+            {t('转入余额', 'Move to balance')}
           </Button>
         </Space.Compact>
         {pending > 0 && pending < minQuota ? (
-          <p className={styles.hint}>奖励满 ¥{minAmount} 后可以转入。</p>
+          <p className={styles.hint}>{t('奖励满', 'Rewards can be moved once they reach')} ¥{minAmount}.</p>
         ) : null}
         {error ? <Alert type="error" showIcon title={error} /> : null}
       </section>

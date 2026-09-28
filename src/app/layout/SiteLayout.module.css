@@ -7,3 +7,10 @@
   /* 窄屏/矮屏放不下时在这里内部滚动，整页永远不出滚动条 */
   overflow-y: auto;
 }
+
+/* 手机底部导航占一行，预留高度避免最后一行被遮 */
+@media (max-width: 760px) {
+  .main {
+    padding-bottom: 64px;
+  }
+}

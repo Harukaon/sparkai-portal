@@ -4,6 +4,8 @@ import { WeChatLogin } from '@/features/auth/components/WeChatLogin'
 import { availableOAuthOptions } from '@/features/auth/oauth'
 import type { AuthBundle, LoginChallenge, SystemStatus } from '@/features/auth/types'
 
+import { useT } from '@/shared/i18n'
+
 import styles from './OAuthButtons.module.css'
 
 interface Props {
@@ -20,6 +22,7 @@ interface Props {
  * 所有按钮放在同一个列表里，间距统一。
  */
 export function AlternativeLogins({ status, returnTo, mode, onAuthenticated, onChallenge }: Props) {
+  const t = useT()
   const oauth = availableOAuthOptions(status).length > 0
   const passkey = mode === 'login' && status.passkey_login && Boolean(onAuthenticated)
   const wechat = mode === 'login' && status.wechat_login && Boolean(onAuthenticated && onChallenge)
@@ -28,10 +31,10 @@ export function AlternativeLogins({ status, returnTo, mode, onAuthenticated, onC
   return (
     <div className={styles.wrap}>
       <div className={styles.separator}>
-        <span>或使用其他方式</span>
+        <span>{t('或使用其他方式', 'or continue with')}</span>
       </div>
       <div className={styles.options}>
-        <OAuthButtons status={status} returnTo={returnTo} action={mode === 'login' ? '登录' : '继续'} />
+        <OAuthButtons status={status} returnTo={returnTo} action={mode === 'login' ? t('登录', 'Sign in') : t('继续', 'Continue')} />
         {passkey && onAuthenticated ? <PasskeyLoginButton status={status} onAuthenticated={onAuthenticated} /> : null}
         {wechat && onAuthenticated && onChallenge ? (
           <WeChatLogin status={status} onAuthenticated={onAuthenticated} onChallenge={onChallenge} />

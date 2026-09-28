@@ -1,0 +1,44 @@
+/* 手机底部 App 式导航；桌面端完全不显示 */
+.tabBar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  display: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: stretch;
+  border-top: 1px solid var(--color-line);
+  background-color: rgba(251, 249, 245, 0.92);
+  backdrop-filter: blur(12px) saturate(140%);
+  /* 兼容 iPhone 底部安全区 */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-2) 0;
+  color: var(--color-ink-subtle);
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+.tab .icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.tabActive {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .tabBar {
+    display: grid;
+  }
+}
