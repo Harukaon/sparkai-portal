@@ -3,14 +3,13 @@
   grid-template-columns: 216px minmax(0, 1fr);
   gap: var(--space-10);
   width: min(100%, var(--container));
-  height: 100%;
-  min-height: 0;
   margin-inline: auto;
-  padding: var(--space-10) var(--space-6) 0;
-  overflow: hidden;
+  padding: var(--space-10) var(--space-6) var(--space-20);
 }
 
 .side {
+  position: sticky;
+  top: var(--space-10);
   align-self: start;
 }
 
@@ -84,22 +83,22 @@
 
 .content {
   min-width: 0;
-  min-height: 0;
-  padding-bottom: var(--space-20);
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
     gap: var(--space-6);
-    padding: var(--space-6) var(--space-4) 0;
+    padding: var(--space-6) var(--space-4) var(--space-16);
   }
 
   .side {
+    position: sticky;
+    top: var(--space-6);
+    z-index: 2;
     min-width: 0;
+    padding-block: var(--space-1);
+    background: var(--color-canvas);
   }
 
   .account {
@@ -117,7 +116,4 @@
     flex: none;
   }
 
-  .content {
-    padding-bottom: var(--space-16);
-  }
 }
