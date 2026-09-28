@@ -33,7 +33,7 @@ const HIGHLIGHTS: Highlight[] = [
   {
     icon: <SafetyCertificateOutlined />,
     title: ['稳定可靠', 'Rock-solid'],
-    description: ['多线路保障，服务不掉线', 'Redundant routes, always on'],
+    description: ['服务稳定可靠', 'Reliable service'],
   },
   {
     icon: <ThunderboltOutlined />,
@@ -58,14 +58,14 @@ export function PitchView() {
       </span>
 
       <h1 className={styles.title}>
-        {t('一个地址，', 'One address,')}
-        <span className={styles.titleKeep}>{t('用上各家旗舰模型', 'every flagship model')}</span>
+        {t('多家顶尖 AI，', 'Leading AI models,')}
+        <span className={styles.titleKeep}>{t('轻松使用', 'all in one place')}</span>
       </h1>
 
       <p className={styles.lead}>
         {t(
-          '你的对话只属于你：我们不保留任何请求内容，用完即弃。一个接入地址，各家旗舰模型随你切换，稳定不掉线，响应快人一步。',
-          'Your conversations stay yours: we never keep what you send. One address gives you every flagship model — stable, always on, and fast.',
+          '无需辗转多个平台，一个入口即可使用多家领先 AI 模型。对话内容不做留存，服务稳定、响应迅速。',
+          'Use leading AI models from one place, without jumping between platforms. Your conversations are not stored, with reliable service and fast responses.',
         )}
       </p>
 
