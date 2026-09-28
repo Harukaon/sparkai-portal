@@ -1,0 +1,25 @@
+# 工单服务部署到 Cloudflare Workers（免费额度）：D1 存工单，R2 存截图
+name = "sparkai-tickets"
+main = "src/worker.ts"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+# ai.sparkai.si/ticket-api/* 交给本服务，其余请求照常走源站
+routes = [{ pattern = "ai.sparkai.si/ticket-api/*", zone_name = "sparkai.si" }]
+
+[vars]
+NEW_API_BASE = "https://ai.sparkai.si"
+MAX_IMAGE_BYTES = "1048576"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sparkai-tickets"
+database_id = "REPLACE_WITH_D1_ID"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "sparkai-tickets"
+
+# 每小时清理一次上传后没发出去的图片
+[triggers]
+crons = ["17 * * * *"]

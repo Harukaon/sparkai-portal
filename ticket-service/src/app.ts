@@ -1,5 +1,3 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
-
 import type { Authenticator, Viewer } from './auth.ts'
 import { sniffImage } from './images.ts'
 import { CATEGORIES, ImageNotAvailableError, STATUSES } from './store.ts'
@@ -7,7 +5,7 @@ import type { MessageRow, TicketCategory, TicketRow, TicketStatus, TicketStore }
 
 /**
  * 工单接口，统一挂在 /ticket-api 下，返回格式和 New API 一样：{ success, message, data }。
- * 这样前端可以直接复用现有的请求封装。
+ * 用标准的 Request/Response 写，同一份代码既能跑在 Cloudflare Workers，也能跑在 Node。
  */
 export const PREFIX = '/ticket-api'
 
@@ -23,6 +21,8 @@ const LIMITS = {
   jsonBodyBytes: 64 * 1024,
 }
 
+type T = (zh: string, en: string) => string
+
 class HttpError extends Error {
   readonly status: number
   constructor(status: number, message: string) {
@@ -31,13 +31,7 @@ class HttpError extends Error {
   }
 }
 
-type Lang = 'zh' | 'en'
-
-function langOf(req: IncomingMessage): Lang {
-  return /^zh/i.test(req.headers['accept-language'] ?? 'zh') ? 'zh' : 'en'
-}
-
-/** 简单的滑动窗口限流，按「用户 + 动作」计数，只放内存里 */
+/** 简单的滑动窗口限流，按「用户 + 动作」计数，只放内存里（Workers 下按实例计，够挡住刷单） */
 class RateLimiter {
   private readonly hits = new Map<string, number[]>()
 
@@ -54,38 +48,47 @@ class RateLimiter {
   }
 }
 
-function send(res: ServerResponse, status: number, body: unknown): void {
-  const payload = JSON.stringify(body)
-  res.writeHead(status, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
+function json(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' },
   })
-  res.end(payload)
 }
 
-function ok(res: ServerResponse, data: unknown): void {
-  send(res, 200, { success: true, message: '', data })
+function ok(data: unknown): Response {
+  return json(200, { success: true, message: '', data })
 }
 
-async function readBody(req: IncomingMessage, maxBytes: number, tooLarge: string): Promise<Buffer> {
-  const declared = Number(req.headers['content-length'])
+async function readBody(request: Request, maxBytes: number, tooLarge: string): Promise<Uint8Array> {
+  const declared = Number(request.headers.get('content-length'))
   if (Number.isFinite(declared) && declared > maxBytes) throw new HttpError(413, tooLarge)
-  const chunks: Buffer[] = []
+  if (!request.body) return new Uint8Array()
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
   let size = 0
-  for await (const chunk of req) {
-    const buffer = chunk as Buffer
-    size += buffer.length
-    if (size > maxBytes) throw new HttpError(413, tooLarge)
-    chunks.push(buffer)
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    size += value.byteLength
+    if (size > maxBytes) {
+      await reader.cancel()
+      throw new HttpError(413, tooLarge)
+    }
+    chunks.push(value)
   }
-  return Buffer.concat(chunks)
+  const out = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) {
+    out.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return out
 }
 
-async function readJson(req: IncomingMessage, t: (zh: string, en: string) => string): Promise<Record<string, unknown>> {
-  const raw = await readBody(req, LIMITS.jsonBodyBytes, t('内容太长了', 'Request body is too large'))
+async function readJson(request: Request, t: T): Promise<Record<string, unknown>> {
+  const raw = await readBody(request, LIMITS.jsonBodyBytes, t('内容太长了', 'Request body is too large'))
   try {
-    const parsed: unknown = JSON.parse(raw.toString('utf8') || '{}')
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(raw) || '{}')
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as Record<string, unknown>
   } catch {
     // 落到下面统一报错
@@ -136,7 +139,7 @@ export interface AppDeps {
 export function createHandler({ store, auth, maxImageBytes }: AppDeps) {
   const limiter = new RateLimiter()
 
-  function parseContent(body: Record<string, unknown>, t: (zh: string, en: string) => string): { content: string; imageIds: string[] } {
+  function parseContent(body: Record<string, unknown>, t: T): { content: string; imageIds: string[] } {
     const content = typeof body.content === 'string' ? body.content.trim() : ''
     const imageIds = Array.isArray(body.images) ? body.images.filter((id): id is string => typeof id === 'string') : []
     if (!content && imageIds.length === 0) throw new HttpError(400, t('请填写问题描述', 'Please describe the issue'))
@@ -150,8 +153,8 @@ export function createHandler({ store, auth, maxImageBytes }: AppDeps) {
     return { content, imageIds }
   }
 
-  function loadOwnTicket(id: number, viewer: Viewer, t: (zh: string, en: string) => string): TicketRow {
-    const ticket = Number.isInteger(id) ? store.getTicket(id) : undefined
+  async function loadOwnTicket(id: number, viewer: Viewer, t: T): Promise<TicketRow> {
+    const ticket = Number.isInteger(id) ? await store.getTicket(id) : undefined
     // 不是自己的单一律当作不存在，不暴露「这个编号有别人的工单」
     if (!ticket || (!viewer.isAdmin && ticket.user_id !== viewer.id)) {
       throw new HttpError(404, t('工单不存在', 'Ticket not found'))
@@ -159,16 +162,17 @@ export function createHandler({ store, auth, maxImageBytes }: AppDeps) {
     return ticket
   }
 
-  async function route(req: IncomingMessage, res: ServerResponse, viewer: Viewer, url: URL, t: (zh: string, en: string) => string): Promise<void> {
+  async function route(request: Request, viewer: Viewer, url: URL, t: T): Promise<Response> {
     const path = url.pathname.slice(PREFIX.length) || '/'
-    const method = req.method ?? 'GET'
+    const method = request.method
 
     // 未处理数量：管理员看「待处理」，用户看「客服已回复」，给侧边栏小红点用
     if (path === '/summary' && method === 'GET') {
-      ok(res, viewer.isAdmin
-        ? { is_admin: true, pending: store.countByStatus('open') }
-        : { is_admin: false, pending: store.countByStatus('replied', viewer.id) })
-      return
+      return ok(
+        viewer.isAdmin
+          ? { is_admin: true, pending: await store.countByStatus('open') }
+          : { is_admin: false, pending: await store.countByStatus('replied', viewer.id) },
+      )
     }
 
     if (path === '/tickets' && method === 'GET') {
@@ -178,19 +182,18 @@ export function createHandler({ store, auth, maxImageBytes }: AppDeps) {
       const page = positiveInt(url.searchParams.get('p'), 1, 100000)
       const pageSize = positiveInt(url.searchParams.get('page_size'), 10, 100)
       const keyword = (url.searchParams.get('keyword') ?? '').trim().slice(0, 100)
-      const result = store.listTickets({
+      const result = await store.listTickets({
         userId: scopeAll ? undefined : viewer.id,
         status: STATUSES.includes(status as TicketStatus) ? (status as TicketStatus) : undefined,
         keyword: scopeAll && keyword ? keyword : undefined,
         page,
         pageSize,
       })
-      ok(res, { items: result.items.map((ticket) => ticketView(ticket, viewer)), total: result.total, page, page_size: pageSize })
-      return
+      return ok({ items: result.items.map((ticket) => ticketView(ticket, viewer)), total: result.total, page, page_size: pageSize })
     }
 
     if (path === '/tickets' && method === 'POST') {
-      const body = await readJson(req, t)
+      const body = await readJson(request, t)
       const title = typeof body.title === 'string' ? body.title.trim() : ''
       const category = body.category as TicketCategory
       if (!title) throw new HttpError(400, t('请填写标题', 'Please enter a title'))
@@ -198,121 +201,105 @@ export function createHandler({ store, auth, maxImageBytes }: AppDeps) {
       if (!CATEGORIES.includes(category)) throw new HttpError(400, t('请选择问题类型', 'Please choose a category'))
       const { content, imageIds } = parseContent(body, t)
       if (!content) throw new HttpError(400, t('请填写问题描述', 'Please describe the issue'))
-      if (!viewer.isAdmin && store.countActive(viewer.id) >= LIMITS.activePerUser) {
+      if (!viewer.isAdmin && (await store.countActive(viewer.id)) >= LIMITS.activePerUser) {
         throw new HttpError(429, t('未关闭的工单太多了，请先关闭已解决的工单', 'Too many open tickets — please close resolved ones first'))
       }
       if (!limiter.allow(`create:${viewer.id}`, LIMITS.createPerHour, 3600_000)) {
         throw new HttpError(429, t('提交太频繁了，请稍后再试', 'Too many tickets — please try again later'))
       }
-      const ticket = store.createTicket(
+      const ticket = await store.createTicket(
         { id: viewer.id, username: viewer.username, displayName: viewer.displayName, email: viewer.email },
         { title, category, content, imageIds },
       )
-      ok(res, ticketView(ticket, viewer))
-      return
+      return ok(ticketView(ticket, viewer))
     }
 
     const detail = path.match(/^\/tickets\/(\d+)$/)
     if (detail && method === 'GET') {
-      const ticket = loadOwnTicket(Number(detail[1]), viewer, t)
-      ok(res, { ticket: ticketView(ticket, viewer), messages: store.listMessages(ticket.id).map((message) => messageView(message, viewer)) })
-      return
+      const ticket = await loadOwnTicket(Number(detail[1]), viewer, t)
+      const messages = await store.listMessages(ticket.id)
+      return ok({ ticket: ticketView(ticket, viewer), messages: messages.map((message) => messageView(message, viewer)) })
     }
 
     const reply = path.match(/^\/tickets\/(\d+)\/messages$/)
     if (reply && method === 'POST') {
-      const ticket = loadOwnTicket(Number(reply[1]), viewer, t)
-      const body = await readJson(req, t)
+      const ticket = await loadOwnTicket(Number(reply[1]), viewer, t)
+      const body = await readJson(request, t)
       const { content, imageIds } = parseContent(body, t)
       // 管理员回复自己提交的单时也按用户身份算，避免状态错乱
       const isStaff = viewer.isAdmin && ticket.user_id !== viewer.id
-      const message = store.addMessage(ticket.id, { id: viewer.id, name: viewer.displayName || viewer.username, isStaff }, content, imageIds)
-      ok(res, messageView({ ...message, images: imageIds }, viewer))
-      return
+      const message = await store.addMessage(ticket.id, { id: viewer.id, name: viewer.displayName || viewer.username, isStaff }, content, imageIds)
+      return ok(messageView({ ...message, images: imageIds }, viewer))
     }
 
     const statusMatch = path.match(/^\/tickets\/(\d+)\/status$/)
     if (statusMatch && method === 'POST') {
-      const ticket = loadOwnTicket(Number(statusMatch[1]), viewer, t)
-      const body = await readJson(req, t)
+      const ticket = await loadOwnTicket(Number(statusMatch[1]), viewer, t)
+      const body = await readJson(request, t)
       const next = body.status as TicketStatus
       // 用户只能关单；重新打开靠「继续追问」。管理员可以改成任意状态。
       const allowed = viewer.isAdmin ? STATUSES.includes(next) : next === 'closed'
       if (!allowed) throw new HttpError(400, t('不支持这个操作', 'Unsupported status'))
-      store.setStatus(ticket.id, next)
-      ok(res, ticketView(store.getTicket(ticket.id)!, viewer))
-      return
+      await store.setStatus(ticket.id, next)
+      return ok(ticketView((await store.getTicket(ticket.id))!, viewer))
     }
 
     if (path === '/uploads' && method === 'POST') {
-      const tooLarge = t(`图片不能超过 ${Math.round(maxImageBytes / 1024 / 1024 * 10) / 10}MB`, `Images must be ${Math.round(maxImageBytes / 1024 / 1024 * 10) / 10}MB or smaller`)
+      const mb = Math.round((maxImageBytes / 1024 / 1024) * 10) / 10
       if (!limiter.allow(`upload:${viewer.id}`, LIMITS.uploadPerHour, 3600_000)) {
         throw new HttpError(429, t('上传太频繁了，请稍后再试', 'Too many uploads — please try again later'))
       }
-      const bytes = await readBody(req, maxImageBytes, tooLarge)
+      const bytes = await readBody(request, maxImageBytes, t(`图片不能超过 ${mb}MB`, `Images must be ${mb}MB or smaller`))
       const mime = sniffImage(bytes)
       if (!mime) throw new HttpError(400, t('只支持 PNG、JPG、GIF、WebP 图片', 'Only PNG, JPG, GIF and WebP images are supported'))
-      const image = store.saveImage(viewer.id, mime, bytes)
-      ok(res, { id: image.id, size: image.size, mime: image.mime })
-      return
+      const image = await store.saveImage(viewer.id, mime, bytes)
+      return ok({ id: image.id, size: image.size, mime: image.mime })
     }
 
     const image = path.match(/^\/uploads\/([a-f0-9]{32})$/)
     if (image && method === 'GET') {
-      const row = store.getImage(image[1]!)
+      const row = await store.getImage(image[1]!)
       const visible = row && (viewer.isAdmin || row.owner_id === viewer.id || row.ticket_user_id === viewer.id)
-      if (!row || !visible) throw new HttpError(404, t('图片不存在', 'Image not found'))
-      const bytes = store.readImage(row.id)
-      res.writeHead(200, {
-        'Content-Type': row.mime,
-        'Content-Length': bytes.length,
-        'Cache-Control': 'private, max-age=86400, immutable',
-        'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'",
-        'Content-Disposition': 'inline',
+      const bytes = visible ? await store.readImage(row.id) : null
+      if (!row || !bytes) throw new HttpError(404, t('图片不存在', 'Image not found'))
+      return new Response(new Uint8Array(bytes), {
+        headers: {
+          'Content-Type': row.mime,
+          'Cache-Control': 'private, max-age=86400, immutable',
+          'X-Content-Type-Options': 'nosniff',
+          'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'",
+          'Content-Disposition': 'inline',
+        },
       })
-      res.end(bytes)
-      return
     }
 
     throw new HttpError(404, t('接口不存在', 'Not found'))
   }
 
-  return async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const lang = langOf(req)
-    const t = (zh: string, en: string) => (lang === 'zh' ? zh : en)
+  return async function handle(request: Request): Promise<Response> {
+    const lang = /^zh/i.test(request.headers.get('accept-language') ?? 'zh') ? 'zh' : 'en'
+    const t: T = (zh, en) => (lang === 'zh' ? zh : en)
     try {
-      const url = new URL(req.url ?? '/', 'http://localhost')
-      if (url.pathname === `${PREFIX}/healthz`) {
-        ok(res, { ok: true })
-        return
-      }
+      const url = new URL(request.url)
+      if (url.pathname === `${PREFIX}/healthz`) return ok({ ok: true })
       if (!url.pathname.startsWith(`${PREFIX}/`)) throw new HttpError(404, t('接口不存在', 'Not found'))
 
       let viewer: Viewer | null
       try {
-        viewer = await auth.resolve(req.headers.authorization)
+        viewer = await auth.resolve(request.headers.get('authorization') ?? undefined)
       } catch {
         throw new HttpError(503, t('暂时无法确认登录状态，请稍后再试', 'Cannot verify your sign-in right now — please try again'))
       }
       if (!viewer) throw new HttpError(401, t('请先登录', 'Please sign in'))
 
-      await route(req, res, viewer, url, t)
+      return await route(request, viewer, url, t)
     } catch (error) {
-      if (res.headersSent) {
-        res.destroy()
-        return
-      }
-      if (error instanceof HttpError) {
-        send(res, error.status, { success: false, message: error.message })
-        return
-      }
+      if (error instanceof HttpError) return json(error.status, { success: false, message: error.message })
       if (error instanceof ImageNotAvailableError) {
-        send(res, 400, { success: false, message: t('图片已失效，请重新上传', 'An image expired — please upload it again') })
-        return
+        return json(400, { success: false, message: t('图片已失效，请重新上传', 'An image expired — please upload it again') })
       }
       console.error('[ticket-service]', error)
-      send(res, 500, { success: false, message: t('服务器出错了，请稍后再试', 'Server error — please try again later') })
+      return json(500, { success: false, message: t('服务器出错了，请稍后再试', 'Server error — please try again later') })
     }
   }
 }

@@ -3,8 +3,9 @@
 SparkAI 的简单工单系统后端：用户填表提交问题（可带截图），管理员在控制台回复。
 
 - **不改 New API**：身份直接问 New API（把前端的登录令牌转给 `/api/user/self`），`role >= 10` 视为管理员。
-- **零第三方依赖**：Node 24+ 自带 SQLite 和直接运行 TypeScript。
-- 数据全在 `TICKET_DATA_DIR`：`tickets.db` + `uploads/`（图片文件）。**这个目录要备份**。
+- **线上跑在 Cloudflare Workers（免费额度）**：工单存 D1（`sparkai-tickets`），截图存 R2（`sparkai-tickets` 桶，`tickets/` 前缀）。
+- **本地开发**用 Node 自带 SQLite + 本地文件，同一份业务代码（`src/app.ts`、`src/store.ts`），零第三方依赖。
+- 入口：线上 `src/worker.ts`，本地 `src/server.ts`；表结构 `schema.sql` 两边共用。
 
 ## 本地运行
 
@@ -40,8 +41,18 @@ node src/server.ts        # 默认 127.0.0.1:3100，数据在 ./data，New API �
 
 分类：`topup` 充值 / `billing` 扣费 / `api` 接口报错 / `account` 账号 / `other` 其他。
 
-## 线上部署要点
+## 线上部署（Cloudflare）
 
-- 反向代理把 `https://站点域名/ticket-api/` 转到本服务，**和前台同域**（前端直接用相对路径）。
-- 反代要放宽上传大小：`client_max_body_size 2m;`
-- 本服务只需监听本机或容器内网，不要直接暴露公网端口。
+配置在 `wrangler.toml`：路由 `ai.sparkai.si/ticket-api/*` 交给 Worker，其余请求照常回源站，所以服务器和 OpenResty 都不用改。
+
+```bash
+cd ticket-service
+# 首次：建库、建桶、建表（database_id 填回 wrangler.toml）
+npx wrangler@4 d1 create sparkai-tickets
+npx wrangler@4 r2 bucket create sparkai-tickets
+npx wrangler@4 d1 execute sparkai-tickets --remote --file schema.sql
+# 之后每次发布
+npx wrangler@4 deploy
+```
+
+免费额度：Workers 每天 10 万次请求；D1 5GB；R2 10GB（下载流量免费）。每小时有一个定时任务清理上传后没发出去的图片。

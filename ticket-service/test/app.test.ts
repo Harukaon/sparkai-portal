@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { createHandler } from '../src/app.ts'
 import { Authenticator } from '../src/auth.ts'
+import { fsBlobs, nodeDb, toNodeListener } from '../src/node.ts'
 import { TicketStore } from '../src/store.ts'
 
 /** 假的 New API：三个令牌分别对应普通用户 A、普通用户 B、管理员 */
@@ -25,6 +26,7 @@ let service: http.Server
 let base = ''
 let dataDir = ''
 let store: TicketStore
+let db: ReturnType<typeof nodeDb>
 
 beforeAll(async () => {
   newApi = http.createServer((req, res) => {
@@ -39,9 +41,11 @@ beforeAll(async () => {
   const apiPort = (newApi.address() as AddressInfo).port
 
   dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ticket-test-'))
-  store = new TicketStore(dataDir)
+  db = nodeDb(path.join(dataDir, 'tickets.db'))
+  store = new TicketStore(db, fsBlobs(path.join(dataDir, 'uploads')))
+  await store.migrate(fs.readFileSync(new URL('../schema.sql', import.meta.url), 'utf8'))
   service = http.createServer(
-    createHandler({ store, auth: new Authenticator(`http://127.0.0.1:${apiPort}`), maxImageBytes: 1024 * 1024 }),
+    toNodeListener(createHandler({ store, auth: new Authenticator(`http://127.0.0.1:${apiPort}`), maxImageBytes: 1024 * 1024 })),
   )
   await new Promise<void>((resolve) => service.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(service.address() as AddressInfo).port}/ticket-api`
@@ -50,7 +54,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await new Promise((resolve) => service.close(resolve))
   await new Promise((resolve) => newApi.close(resolve))
-  store.close()
+  db.close()
   fs.rmSync(dataDir, { recursive: true, force: true })
 })
 
