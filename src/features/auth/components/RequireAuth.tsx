@@ -29,3 +29,13 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   return children
 }
+
+/** 管理员角色门槛，与 New API 一致：10 管理员 / 100 超级管理员 */
+export const ADMIN_ROLE = 10
+
+/** 只给管理员看的页面：普通用户直接送回控制台首页（真正的权限由后端再校验一次） */
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const role = useAuthStore((state) => state.user?.role ?? 0)
+  if (role < ADMIN_ROLE) return <Navigate replace to="/console" />
+  return children
+}

@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { ConsoleLayout } from '@/app/layout/ConsoleLayout'
 import { SiteLayout } from '@/app/layout/SiteLayout'
-import { RequireAuth } from '@/features/auth/components/RequireAuth'
+import { RequireAdmin, RequireAuth } from '@/features/auth/components/RequireAuth'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
@@ -11,6 +11,8 @@ import { InvitePage } from '@/pages/console/InvitePage'
 import { KeysPage } from '@/pages/console/KeysPage'
 import { LogsPage } from '@/pages/console/LogsPage'
 import { OverviewPage } from '@/pages/console/OverviewPage'
+import { TicketDetailPage } from '@/pages/console/TicketDetailPage'
+import { TicketsPage } from '@/pages/console/TicketsPage'
 import { WalletPage } from '@/pages/console/WalletPage'
 import { HomePage } from '@/pages/landing/HomePage'
 import { ModelsPage } from '@/pages/models/ModelsPage'
@@ -40,6 +42,10 @@ export const router = createBrowserRouter([
           { path: 'logs', element: <LogsPage /> },
           { path: 'wallet', element: <WalletPage /> },
           { path: 'invite', element: <InvitePage /> },
+          { path: 'tickets', element: <TicketsPage /> },
+          { path: 'tickets/:id', element: <TicketDetailPage /> },
+          { path: 'admin/tickets', element: <RequireAdmin><TicketsPage admin /></RequireAdmin> },
+          { path: 'admin/tickets/:id', element: <RequireAdmin><TicketDetailPage admin /></RequireAdmin> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
