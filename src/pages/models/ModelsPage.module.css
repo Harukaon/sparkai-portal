@@ -134,20 +134,32 @@
   font-size: var(--text-xs);
 }
 
-.price > small {
-  display: block;
-  margin-top: var(--space-1);
-}
-
+/* 价格：「输入 ¥x」「输出 ¥y」两列紧挨着对齐，单位写在表头，不再单独占一行 */
 .priceStack {
   display: grid;
-  gap: var(--space-1);
+  grid-template-columns: auto auto;
+  justify-content: start;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
 }
 
-.priceStack span {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: space-between;
+.priceStack dt {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+.priceStack dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-align: right;
+}
+
+.thUnit {
+  margin-left: var(--space-2);
+  color: var(--color-ink-subtle);
+  font-weight: 400;
 }
 
 .muted { color: var(--color-ink-muted); }

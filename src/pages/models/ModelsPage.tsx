@@ -21,10 +21,12 @@ function PriceLabel({ price, format }: { price: ModelPrice; format: QuotaFormat 
   if (price.kind === 'unknown') return <span className={styles.muted}>按实际选择的分组计费</span>
   if (price.kind === 'request') return <span><strong>{formatUsdAsCny(price.each, format)}</strong><small> / 次</small></span>
   return (
-    <div className={styles.priceStack}>
-      <span><small>输入</small> <strong>{formatUsdAsCny(price.input, format)}</strong></span>
-      <span><small>输出</small> <strong>{formatUsdAsCny(price.output, format)}</strong></span>
-    </div>
+    <dl className={styles.priceStack}>
+      <dt>输入</dt>
+      <dd>{formatUsdAsCny(price.input, format)}</dd>
+      <dt>输出</dt>
+      <dd>{formatUsdAsCny(price.output, format)}</dd>
+    </dl>
   )
 }
 
@@ -135,7 +137,7 @@ export function ModelsPage() {
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th scope="col">模型</th><th scope="col">智力</th><th scope="col">厂商与能力</th><th scope="col">本站价格（人民币）</th></tr></thead>
+                <thead><tr><th scope="col">模型</th><th scope="col">智力</th><th scope="col">厂商与能力</th><th scope="col">本站价格<span className={styles.thUnit}>元 / 百万 token</span></th></tr></thead>
                 <tbody>
                   {visible.map((model) => (
                     <tr key={model.model_name}>
@@ -156,7 +158,6 @@ export function ModelsPage() {
                         </div>
                       </td>
                       <td className={styles.price}><PriceLabel format={format} price={modelPrice(model, group ? data.group_ratio?.[group] : undefined)} />
-                        {model.quota_type === 0 && model.billing_mode !== 'tiered_expr' && !model.billing_expr && group !== 'auto' ? <small>每百万 token</small> : null}
                       </td>
                     </tr>
                   ))}
