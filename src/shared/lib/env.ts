@@ -22,12 +22,12 @@ export const IS_DEV = import.meta.env.DEV
 
 export const IS_PROD = import.meta.env.PROD
 
-/** 按当前语言取站名 */
+/** 站名统一用 SparkAI（中文界面也显示 SparkAI） */
 export function siteName(): string {
-  return tr(SITE_NAME_ZH, SITE_NAME_EN)
+  return SITE_NAME_EN
 }
 
-/** 拼接页面标题，如「控制台 · 火花AI」 */
+/** 拼接页面标题，如「控制台 · SparkAI」 */
 export function pageTitle(page?: string): string {
   return page
     ? `${page} · ${siteName()}`
