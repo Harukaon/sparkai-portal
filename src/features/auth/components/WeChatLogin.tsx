@@ -1,3 +1,4 @@
+import { WechatOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, Modal } from 'antd'
 import { useState } from 'react'
 
@@ -41,7 +42,7 @@ export function WeChatLogin({ status, onAuthenticated, onChallenge }: Props) {
 
   return (
     <>
-      <Button block onClick={() => setOpen(true)}>使用微信登录</Button>
+      <Button block icon={<WechatOutlined />} onClick={() => setOpen(true)}>使用微信登录</Button>
       <Modal
         open={open}
         title="微信扫码登录"

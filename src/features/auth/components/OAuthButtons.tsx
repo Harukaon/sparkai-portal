@@ -1,11 +1,18 @@
+import { GithubOutlined, DiscordOutlined, SafetyCertificateOutlined, SendOutlined, LoginOutlined } from '@ant-design/icons'
 import { Alert, Button } from 'antd'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { availableOAuthOptions, startOAuthLogin } from '@/features/auth/oauth'
 import type { SystemStatus } from '@/features/auth/types'
 import { errorMessage } from '@/shared/api/client'
 
-import styles from './OAuthButtons.module.css'
+const ICONS: Record<string, ReactNode> = {
+  github: <GithubOutlined />,
+  discord: <DiscordOutlined />,
+  oidc: <SafetyCertificateOutlined />,
+  telegram: <SendOutlined />,
+}
 
 interface OAuthButtonsProps {
   status: SystemStatus
@@ -32,22 +39,20 @@ export function OAuthButtons({ status, returnTo, action = '登录' }: OAuthButto
   }
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.separator}><span>或使用其他方式</span></div>
-      <div className={styles.options}>
-        {options.map((option) => (
-          <Button
-            key={option.slug}
-            block
-            loading={starting === option.slug}
-            disabled={starting !== null && starting !== option.slug}
-            onClick={() => void start(option.slug)}
-          >
-            使用 {option.name} {action}
-          </Button>
-        ))}
-      </div>
+    <>
+      {options.map((option) => (
+        <Button
+          key={option.slug}
+          block
+          icon={ICONS[option.slug] ?? <LoginOutlined />}
+          loading={starting === option.slug}
+          disabled={starting !== null && starting !== option.slug}
+          onClick={() => void start(option.slug)}
+        >
+          使用 {option.name} {action}
+        </Button>
+      ))}
       {error ? <Alert type="error" showIcon title={error} /> : null}
-    </div>
+    </>
   )
 }

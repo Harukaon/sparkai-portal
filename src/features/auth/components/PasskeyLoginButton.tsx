@@ -1,11 +1,10 @@
+import { KeyOutlined } from '@ant-design/icons'
 import { Alert, Button, Select } from 'antd'
 import { useState } from 'react'
 
 import { loginWithPasskey } from '@/features/auth/passkey'
 import type { AuthBundle, SystemStatus } from '@/features/auth/types'
 import { errorMessage } from '@/shared/api/client'
-
-import styles from './OAuthButtons.module.css'
 
 interface Props {
   status: SystemStatus
@@ -31,8 +30,8 @@ export function PasskeyLoginButton({ status, onAuthenticated }: Props) {
   }
 
   return (
-    <div className={styles.options}>
-      <Button block loading={loading} onClick={() => void start()}>使用通行密钥登录</Button>
+    <>
+      <Button block icon={<KeyOutlined />} loading={loading} onClick={() => void start()}>使用通行密钥登录</Button>
       {(status.passkey_rp_ids?.length ?? 0) > 1 ? (
         <Select
           value={rpID}
@@ -44,6 +43,6 @@ export function PasskeyLoginButton({ status, onAuthenticated }: Props) {
         />
       ) : null}
       {error ? <Alert type="error" showIcon title={error} /> : null}
-    </div>
+    </>
   )
 }

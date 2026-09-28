@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '@/features/auth/auth-store'
 import { AuthCard } from '@/features/auth/components/AuthCard'
-import { OAuthButtons } from '@/features/auth/components/OAuthButtons'
+import { AlternativeLogins } from '@/features/auth/components/AlternativeLogins'
 import { availableOAuthOptions } from '@/features/auth/oauth'
 import { RegisterForm } from '@/features/auth/components/RegisterForm'
 import { useSystemStatus } from '@/features/auth/hooks'
@@ -45,7 +45,7 @@ export function RegisterPage() {
                 }
               />
             ) : null}
-            <OAuthButtons status={system.data} returnTo="/console" action="继续" />
+            <AlternativeLogins status={system.data} returnTo="/console" mode="register" />
           </>
         ) : (
           <Alert type="info" showIcon title="当前未开放注册" description="请联系站点管理员。" />
