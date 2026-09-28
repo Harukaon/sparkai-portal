@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom'
 
 import { MobileTabBar } from '@/app/layout/MobileTabBar'
 import { SiteHeader } from '@/app/layout/SiteHeader'
-import { NoticeModal } from '@/features/notices/components/NoticeModal'
 
 import styles from './SiteLayout.module.css'
 
@@ -23,7 +22,6 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <MobileTabBar />
-      <NoticeModal />
     </>
   )
 }

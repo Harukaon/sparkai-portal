@@ -82,3 +82,27 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
+
+.empty {
+  margin: 0;
+  padding: var(--space-5) 0 var(--space-2);
+  color: var(--color-ink-subtle);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* 系统通知置顶，用浅灰底和公告区分 */
+.pinned {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border-bottom: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+}
+
+.pin {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 5px;
+  color: var(--color-ink-muted);
+}
