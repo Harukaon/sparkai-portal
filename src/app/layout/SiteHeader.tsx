@@ -1,6 +1,6 @@
 import { App as AntdApp, Button, Drawer } from 'antd'
 import { ArrowRightOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 import { useAuthStore } from '@/features/auth/auth-store'
@@ -39,7 +39,6 @@ export function SiteHeader() {
   const { message } = AntdApp.useApp()
   const t = useT()
   const lang = useLang()
-  const { pathname } = useLocation()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -102,9 +101,6 @@ export function SiteHeader() {
             </>
           ) : authStatus === 'anonymous' ? (
             <>
-              {pathname !== '/' ? (
-                <Link to="/login"><Button type="text" className={styles.login}>{t('登录', 'Sign in')}</Button></Link>
-              ) : null}
               <Link to="/register">
                 <Button type="primary" icon={<ArrowRightOutlined />} iconPlacement="end">
                   {navLabel(PRIMARY_ACTION_LABEL, lang)}
