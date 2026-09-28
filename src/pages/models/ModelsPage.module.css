@@ -73,7 +73,10 @@
 
 .table th:first-child { width: 32%; }
 .table th:nth-child(2) { width: 12%; }
-.table th:nth-child(3) { width: 18%; }
+.table th:nth-child(3) {
+  width: 18%;
+  text-align: center;
+}
 
 .table td {
   padding: var(--space-4) var(--space-5);
