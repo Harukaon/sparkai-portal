@@ -111,13 +111,33 @@
 }
 
 .meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.vendorName {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.endpointTypes {
+  display: grid;
+  justify-items: center;
   gap: var(--space-1);
 }
 
-.meta > span:first-child { margin-right: var(--space-2); }
+.endpointRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.endpointRow :global(.ant-tag) {
+  margin-inline-end: 0;
+}
 
 .price {
   white-space: nowrap;

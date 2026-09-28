@@ -69,6 +69,22 @@ function IntelligenceCell({ score }: { score?: number }) {
   )
 }
 
+function EndpointTypeRows({ endpoints }: { endpoints: string[] }) {
+  const rows = Array.from({ length: Math.ceil(endpoints.length / 2) }, (_, index) =>
+    endpoints.slice(index * 2, index * 2 + 2),
+  )
+
+  return (
+    <div className={styles.endpointTypes}>
+      {rows.map((row, index) => (
+        <div className={styles.endpointRow} key={index}>
+          {row.map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function vendorName(model: PricingModel, vendors: PricingVendor[]): string {
   return vendors.find((vendor) => vendor.id === model.vendor_id)?.name || model.owner_by || '其他'
 }
@@ -188,8 +204,13 @@ export function ModelsPage() {
                       </td>
                       <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
                       <td>
-                        <div className={styles.meta}><span>{vendorName(model, vendors)}</span>
-                          {(showAllEndpointTypes ? model.supported_endpoint_types ?? [] : (model.supported_endpoint_types ?? []).slice(0, 3)).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
+                        <div className={styles.meta}>
+                          <span className={styles.vendorName}>{vendorName(model, vendors)}</span>
+                          <EndpointTypeRows
+                            endpoints={showAllEndpointTypes
+                              ? model.supported_endpoint_types ?? []
+                              : (model.supported_endpoint_types ?? []).slice(0, 3)}
+                          />
                         </div>
                       </td>
                       <td className={styles.price}>{group === 'all' ? (
