@@ -21,6 +21,12 @@ export interface AuthUser {
   used_quota: number
   request_count: number
   aff_code: string
+  /** 已邀请的人数 */
+  aff_count?: number
+  /** 还没转入余额的邀请奖励（内部额度） */
+  aff_quota?: number
+  /** 累计获得的邀请奖励（内部额度） */
+  aff_history_quota?: number
 }
 
 /** 一次登录会话（对应一台设备上的一次登录） */

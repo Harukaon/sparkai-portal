@@ -7,6 +7,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { InvitePage } from '@/pages/console/InvitePage'
 import { KeysPage } from '@/pages/console/KeysPage'
 import { LogsPage } from '@/pages/console/LogsPage'
 import { OverviewPage } from '@/pages/console/OverviewPage'
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
           { path: 'keys', element: <KeysPage /> },
           { path: 'logs', element: <LogsPage /> },
           { path: 'wallet', element: <WalletPage /> },
+          { path: 'invite', element: <InvitePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
