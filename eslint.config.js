@@ -6,7 +6,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules'] },
+  { ignores: ['dist', 'coverage', 'node_modules', 'ticket-service/data'] },
 
   {
     files: ['**/*.{ts,tsx}'],
@@ -35,6 +35,17 @@ export default tseslint.config(
   {
     files: ['**/*.config.ts', 'vite.config.ts', 'vitest.config.ts'],
     languageOptions: { globals: globals.node },
+  },
+
+  // 工单服务是跑在服务器上的 Node 程序，不是 React 页面
+  {
+    files: ['ticket-service/**/*.ts'],
+    languageOptions: { globals: globals.node },
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
+    files: ['ticket-service/test/**/*.ts'],
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
   },
 
   prettier,

@@ -17,3 +17,6 @@ coverage
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# 工单服务本地数据（数据库和用户上传的图片）
+ticket-service/data/

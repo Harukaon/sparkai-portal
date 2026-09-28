@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:3000',
           changeOrigin: true,
         },
+        // 工单服务（ticket-service/），本地默认跑在 3100
+        '/ticket-api': {
+          target: env.VITE_TICKET_TARGET ?? 'http://127.0.0.1:3100',
+          changeOrigin: true,
+        },
       },
     },
     build: {
