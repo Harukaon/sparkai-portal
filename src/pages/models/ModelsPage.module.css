@@ -71,9 +71,9 @@
   font-weight: 600;
 }
 
-.table th:first-child { width: 38%; }
-.table th:nth-child(2) { width: 14%; }
-.table th:nth-child(3) { width: 24%; }
+.table th:first-child { width: 32%; }
+.table th:nth-child(2) { width: 12%; }
+.table th:nth-child(3) { width: 18%; }
 
 .table td {
   padding: var(--space-4) var(--space-5);
@@ -210,4 +210,49 @@
   height: 100%;
   border-radius: var(--radius-pill);
   background: var(--color-ink);
+}
+
+/* 全部分组：每个分组一行「分组名 ×倍率　入 ¥x　出 ¥y」 */
+.groupPrices {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.groupRow {
+  display: grid;
+  grid-template-columns: minmax(84px, auto) auto;
+  align-items: baseline;
+  justify-content: start;
+  gap: var(--space-4);
+}
+
+.groupRow dt {
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.groupRow dd {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.groupRow dd small {
+  margin-right: 2px;
+  color: var(--color-ink-muted);
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+.ratio {
+  margin-left: var(--space-1);
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
 }

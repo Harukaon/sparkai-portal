@@ -2,7 +2,6 @@ import { CopyOutlined, SearchOutlined } from '@ant-design/icons'
 import { App as AntdApp, Alert, Button, Empty, Input, Select, Skeleton, Tag } from 'antd'
 import { useMemo, useState } from 'react'
 
-import { useAuthStore } from '@/features/auth/auth-store'
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
 import { intelligenceOf, sortByIntelligence, useIntelligence } from '@/features/models/intelligence'
@@ -30,6 +29,34 @@ function PriceLabel({ price, format }: { price: ModelPrice; format: QuotaFormat 
   )
 }
 
+/** 「全部分组」时：每个可用分组一行，列出该分组下的输入/输出价 */
+function GroupPrices({ rows, format }: { rows: { name: string; ratio?: number; price: ModelPrice }[]; format: QuotaFormat }) {
+  return (
+    <dl className={styles.groupPrices}>
+      {rows.map(({ name, ratio, price }) => (
+        <div key={name} className={styles.groupRow}>
+          <dt>
+            {name}
+            {ratio !== undefined ? <span className={styles.ratio}>×{ratio}</span> : null}
+          </dt>
+          <dd>
+            {price.kind === 'tokens' ? (
+              <>
+                <span><small>入</small> {formatUsdAsCny(price.input, format)}</span>
+                <span><small>出</small> {formatUsdAsCny(price.output, format)}</span>
+              </>
+            ) : price.kind === 'request' ? (
+              <span>{formatUsdAsCny(price.each, format)}<small> / 次</small></span>
+            ) : (
+              <span className={styles.muted}>{price.kind === 'dynamic' ? '动态计费' : '以实际为准'}</span>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 function IntelligenceCell({ score }: { score?: number }) {
   if (score === undefined) return <span className={styles.muted}>—</span>
   return (
@@ -51,25 +78,25 @@ export function ModelsPage() {
   const { message } = AntdApp.useApp()
   const pricing = usePricing()
   const format = useQuotaFormat()
-  const userGroup = useAuthStore((state) => state.user?.group)
   const [keyword, setKeyword] = useState('')
-  const [groupChoice, setGroupChoice] = useState('')
+  const [groupChoice, setGroupChoice] = useState('all')
   const [vendorChoice, setVendorChoice] = useState('all')
   const [sortBy, setSortBy] = useState<'iq' | 'name'>('iq')
   const intelligence = useIntelligence()
 
   const data = pricing.data
   const groups = Object.entries(data?.usable_group ?? {})
-  const defaultGroup = groups.find(([name]) => name === userGroup)?.[0]
-    ?? groups.find(([name]) => name !== 'auto')?.[0]
-    ?? groups[0]?.[0]
-  const group = groups.some(([name]) => name === groupChoice) ? groupChoice : defaultGroup
+  // 默认「全部分组」不筛选；选了具体分组才按分组过滤、按该分组倍率算价
+  const group = groups.some(([name]) => name === groupChoice) ? groupChoice : 'all'
+  const priceGroups = groups.map(([name]) => name).filter((name) => name !== 'auto')
   const vendors = data?.vendors ?? EMPTY_VENDORS
 
   const visible = useMemo(() => {
     const search = keyword.trim().toLowerCase()
     const matched = (data?.data ?? []).filter((model) => {
-      if (group === 'auto') {
+      if (group === 'all') {
+        // 不按分组筛选
+      } else if (group === 'auto') {
         if (!model.enable_groups.includes('all') && !(data?.auto_groups ?? []).some((candidate) => matchesGroup(model, candidate))) return false
       } else if (group && !matchesGroup(model, group)) return false
       const vendor = vendorName(model, vendors)
@@ -113,7 +140,13 @@ export function ModelsPage() {
               value={group}
               onChange={setGroupChoice}
               placeholder="可用分组"
-              options={groups.map(([name, desc]) => ({ label: `${name}${desc ? ` · ${desc}` : ''}`, value: name }))}
+              options={[
+                { label: '全部分组', value: 'all' },
+                ...groups.map(([name, desc]) => ({
+                  label: `${desc || name}${typeof data.group_ratio?.[name] === 'number' ? ` · ${data.group_ratio[name]} 倍` : ''}`,
+                  value: name,
+                })),
+              ]}
               disabled={!groups.length}
             />
             <Select
@@ -157,7 +190,16 @@ export function ModelsPage() {
                           {(model.supported_endpoint_types ?? []).slice(0, 3).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
                         </div>
                       </td>
-                      <td className={styles.price}><PriceLabel format={format} price={modelPrice(model, group ? data.group_ratio?.[group] : undefined)} />
+                      <td className={styles.price}>{group === 'all' ? (
+                        <GroupPrices
+                          format={format}
+                          rows={priceGroups
+                            .filter((name) => matchesGroup(model, name))
+                            .map((name) => ({ name: data.usable_group[name] || name, ratio: data.group_ratio?.[name], price: modelPrice(model, data.group_ratio?.[name]) }))}
+                        />
+                      ) : (
+                        <PriceLabel format={format} price={modelPrice(model, data.group_ratio?.[group])} />
+                      )}
                       </td>
                     </tr>
                   ))}
