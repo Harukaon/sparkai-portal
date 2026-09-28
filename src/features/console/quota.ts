@@ -2,10 +2,12 @@ import { useMemo } from 'react'
 
 import { useSystemStatus } from '@/features/auth/hooks'
 import type { SystemStatus } from '@/features/auth/types'
+import { useLang } from '@/shared/i18n'
+import type { Lang } from '@/shared/i18n'
 
 /**
  * New API 内部用整数「额度」记账，默认 500,000 额度 = 1 美元。
- * 显示时统一换算成人民币。
+ * 中文界面换算成人民币显示，英文界面直接显示美元。
  */
 export type QuotaUnit = 'USD' | 'CNY' | 'CUSTOM' | 'TOKENS'
 
@@ -24,19 +26,33 @@ function positive(value: number | undefined, fallback: number): number {
 }
 
 /**
- * 按业务要求，本站所有额度和金额一律用人民币显示，不跟随后台的美元/额度显示设置。
- * 汇率用后台「美元汇率」（usd_exchange_rate），缺省按 7.3。
+ * 按业务要求，金额币种只跟界面语言走，不跟随后台的美元/额度显示设置：
+ * 中文 → 人民币（汇率用后台「美元汇率」usd_exchange_rate，缺省 7.3）；英文 → 美元（不换算）。
  */
-export function quotaFormatFrom(status?: Partial<SystemStatus>): QuotaFormat {
+export function quotaFormatFrom(status?: Partial<SystemStatus>, lang: Lang = 'zh'): QuotaFormat {
+  const perUnit = positive(status?.quota_per_unit, DEFAULT_PER_UNIT)
+  if (lang === 'en') {
+    return { unit: 'USD', perUnit, symbol: '$', rate: 1 }
+  }
   return {
     unit: 'CNY',
-    perUnit: positive(status?.quota_per_unit, DEFAULT_PER_UNIT),
+    perUnit,
     symbol: '¥',
     rate: positive(status?.usd_exchange_rate, DEFAULT_USD_RATE),
   }
 }
 
-/** 美元金额 → 人民币文本（模型单价等以美元计价的数据用） */
+/** 后台美元汇率：英文界面要把「按人民币收款」的实付金额折回美元时用 */
+export function usdExchangeRate(status?: Partial<SystemStatus>): number {
+  return positive(status?.usd_exchange_rate, DEFAULT_USD_RATE)
+}
+
+/** 当前币种的一个简短单位名，用在表头、输入框后缀等处 */
+export function currencyCode(format: QuotaFormat): string {
+  return format.unit === 'USD' ? 'USD' : 'CNY'
+}
+
+/** 美元金额 → 当前币种文本（模型单价等以美元计价的数据用） */
 export function formatUsdAsCny(usd: number, format: QuotaFormat): string {
   return formatQuota(usd * format.perUnit, format)
 }
@@ -70,5 +86,6 @@ export function quotaToAmount(quota: number, format: QuotaFormat): number {
 
 export function useQuotaFormat(): QuotaFormat {
   const status = useSystemStatus()
-  return useMemo(() => quotaFormatFrom(status.data), [status.data])
+  const lang = useLang()
+  return useMemo(() => quotaFormatFrom(status.data, lang), [status.data, lang])
 }

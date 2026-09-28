@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import type { TopupInfo } from './api'
-import { amountOptions, creemProducts, discountFor, onlineTopupAvailable, paymentMethods } from './topup'
+import { quotaFormatFrom } from '@/features/console/quota'
+
+import { amountOptions, creemProducts, discountFor, moneyText, onlineTopupAvailable, paymentMethods } from './topup'
 
 const base: TopupInfo = {
   enable_online_topup: false,
@@ -45,5 +47,22 @@ describe('充值配置解析', () => {
     const products = '[{"name":"入门包","productId":"p1","price":9.9,"quota":500000,"currency":"USD"}]'
     expect(creemProducts({ ...base, creem_products: products })).toEqual([])
     expect(creemProducts({ ...base, enable_creem_topup: true, creem_products: products })).toHaveLength(1)
+  })
+})
+
+describe('实付金额显示', () => {
+  const zh = quotaFormatFrom({ usd_exchange_rate: 7.3 }, 'zh')
+  const en = quotaFormatFrom({ usd_exchange_rate: 7.3 }, 'en')
+
+  it('中文：支付宝等按人民币显示', () => {
+    expect(moneyText(73, 'alipay', zh, 7.3)).toBe('¥73.00')
+  })
+
+  it('英文：折成美元，并注明实际扣的人民币', () => {
+    expect(moneyText(73, 'alipay', en, 7.3)).toBe('$10.00 (charged ¥73.00)')
+  })
+
+  it('Stripe 等外币网关只显示数字', () => {
+    expect(moneyText(9.9, 'stripe', en, 7.3)).toBe('9.90')
   })
 })

@@ -19,14 +19,14 @@ const VOLUME_MIN = 1
 const VOLUME_MAX = 500
 const VOLUME_DEFAULT = 130
 
-/** 示例数据以美元记，按后台汇率换算成人民币显示 */
-function unitText(value: number, rate: number): string {
-  return formatMoney(value * rate, '¥', 2)
+/** 示例数据以美元记：中文按后台汇率换算成人民币，英文直接显示美元 */
+function unitText(value: number, rate: number, symbol: string): string {
+  return formatMoney(value * rate, symbol, 2)
 }
 
 /** 每百万 token 的单价，用一行紧凑文字表示 */
-function pricePair(input: number, output: number, rate: number): string {
-  return `${unitText(input, rate)} / ${unitText(output, rate)}`
+function pricePair(input: number, output: number, rate: number, symbol: string): string {
+  return `${unitText(input, rate, symbol)} / ${unitText(output, rate, symbol)}`
 }
 
 /**
@@ -36,7 +36,7 @@ function pricePair(input: number, output: number, rate: number): string {
 export function PricePanel() {
   const t = useT()
   const [volume, setVolume] = useState(VOLUME_DEFAULT)
-  const { rate } = useQuotaFormat()
+  const { rate, symbol } = useQuotaFormat()
 
   const comparison = useMemo(() => compareMonthlyCost(PRICE_ROWS, volume), [volume])
 
@@ -44,7 +44,7 @@ export function PricePanel() {
     <div className={styles.panel}>
       <div className={styles.head}>
         <h2 className={styles.title}>{t('价格对比', 'Price comparison')}</h2>
-        <span className={styles.unitNote}>{t('价格示例 · 元 / 百万 token', 'Sample prices · CNY / M tokens')}</span>
+        <span className={styles.unitNote}>{t('价格示例 · 元 / 百万 token', 'Sample prices · USD / M tokens')}</span>
       </div>
 
       <table className={styles.table}>
@@ -79,14 +79,14 @@ export function PricePanel() {
 
                 <td className={styles.priceCell}>
                   <span className={styles.officialPrice}>
-                    {pricePair(row.official.input, row.official.output, rate)}
+                    {pricePair(row.official.input, row.official.output, rate, symbol)}
                   </span>
                 </td>
 
                 <td className={styles.priceCell}>
                   <span className={styles.oursInner}>
                     <span className={styles.ourPrice}>
-                      {pricePair(row.ours.input, row.ours.output, rate)}
+                      {pricePair(row.ours.input, row.ours.output, rate, symbol)}
                     </span>
                     <span className={styles.discount}>
                       {Math.round((1 - ratio) * 100)}% {t('示例差额', 'saved')}
@@ -127,14 +127,14 @@ export function PricePanel() {
         <dl className={styles.result}>
           <div className={styles.resultRow}>
             <dt>{t('官方直连', 'Official')}</dt>
-            <dd className={styles.resultOfficial}>{formatMoney(comparison.official * rate, '¥', 0)}</dd>
+            <dd className={styles.resultOfficial}>{formatMoney(comparison.official * rate, symbol, 0)}</dd>
           </div>
           <div className={`${styles.resultRow} ${styles.resultHero}`}>
             <dt>{t('走本站', 'Via us')}</dt>
             <dd className={styles.resultOurs}>
-              {formatMoney(comparison.ours * rate, '¥', 0)}
+              {formatMoney(comparison.ours * rate, symbol, 0)}
               <span className={styles.savedTag}>
-                {t('示例差额', 'Saved')} {formatMoney(comparison.saved * rate, '¥', 0)} ·{' '}
+                {t('示例差额', 'Saved')} {formatMoney(comparison.saved * rate, symbol, 0)} ·{' '}
                 {formatPercent(comparison.savedRatio, 0)}
               </span>
             </dd>

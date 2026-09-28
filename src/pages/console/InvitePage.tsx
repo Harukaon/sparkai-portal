@@ -108,16 +108,16 @@ export function InvitePage() {
             placeholder={pending > 0 ? t(`全部 ${pendingAmount}`, `All ${pendingAmount}`) : t('暂无可转入奖励', 'Nothing to move yet')}
             onChange={(value) => { setAmount(typeof value === 'number' ? value : null); setError(null) }}
             disabled={pending < minQuota}
-            aria-label={t('转入金额（元）', 'Amount to move (CNY)')}
+            aria-label={t('转入金额（元）', 'Amount to move (USD)')}
             style={{ width: '100%' }}
           />
-          <Space.Addon>{t('元', 'CNY')}</Space.Addon>
+          <Space.Addon>{t('元', 'USD')}</Space.Addon>
           <Button type="primary" loading={transferring} disabled={pending < minQuota} onClick={() => void transfer()}>
             {t('转入余额', 'Move to balance')}
           </Button>
         </Space.Compact>
         {pending > 0 && pending < minQuota ? (
-          <p className={styles.hint}>{t('奖励满', 'Rewards can be moved once they reach')} ¥{minAmount}.</p>
+          <p className={styles.hint}>{t('奖励满', 'Rewards can be moved once they reach')} {format.symbol}{minAmount}.</p>
         ) : null}
         {error ? <Alert type="error" showIcon title={error} /> : null}
       </section>

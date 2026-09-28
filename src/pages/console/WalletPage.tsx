@@ -8,7 +8,8 @@ import { useEffect, useState } from 'react'
 import { fetchCurrentUser } from '@/features/auth/api'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { PageHead } from '@/features/console/components/PageHead'
-import { formatQuota, useQuotaFormat } from '@/features/console/quota'
+import { useSystemStatus } from '@/features/auth/hooks'
+import { formatQuota, usdExchangeRate, useQuotaFormat } from '@/features/console/quota'
 import type { QuotaFormat } from '@/features/console/quota'
 import {
   createCreemPayment,
@@ -20,7 +21,7 @@ import {
   redeemCode,
 } from '@/features/wallet/api'
 import type { TopupInfo, TopupRecord } from '@/features/wallet/api'
-import { amountOptions, creemProducts, discountFor, paymentMethods } from '@/features/wallet/topup'
+import { amountOptions, creemProducts, discountFor, moneyText, paymentMethods } from '@/features/wallet/topup'
 import { errorMessage } from '@/shared/api/client'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
 import { useT } from '@/shared/i18n'
@@ -41,12 +42,6 @@ function amountLabel(amount: number, format: QuotaFormat): string {
   return formatQuota(amount * format.perUnit, format)
 }
 
-/** 易支付（支付宝、微信等）按人民币收款；其他网关币种以支付页为准 */
-function moneyText(value: string | number, method?: string): string {
-  const text = Number(value).toFixed(2)
-  return !method || ['stripe', 'waffo', 'waffo_pancake', 'creem'].includes(method) ? text : `¥${text}`
-}
-
 function useDebounced<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value)
   useEffect(() => {
@@ -56,7 +51,7 @@ function useDebounced<T>(value: T, delay: number): T {
   return debounced
 }
 
-function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat }) {
+function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: QuotaFormat; usdRate: number }) {
   const t = useT()
   const { message } = AntdApp.useApp()
   const methods = paymentMethods(info)
@@ -139,7 +134,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
               />
               <Space.Addon>{t('份', 'packs')} × {amountLabel(1, format)}</Space.Addon>
             </Space.Compact>
-            {method ? <span className={styles.hint}>自定义时按份填写，1 份到账 {amountLabel(1, format)} 额度；{method.name} 最少 {method.min} 份</span> : null}
+            {method ? <span className={styles.hint}>{t(`自定义时按份填写，1 份到账 ${amountLabel(1, format)} 额度；${method.name} 最少 ${method.min} 份`, `Enter a number of packs; each pack credits ${amountLabel(1, format)}. ${method.name} minimum: ${method.min} packs.`)}</span> : null}
           </div>
 
           <div className={styles.field}>
@@ -156,7 +151,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
             <span className={styles.quote}>
               {t('应付', 'Total')}
               <strong>
-                {!valid ? '—' : quote.isFetching ? t('计算中…', '…') : quote.isError || !quote.data ? '—' : moneyText(quote.data, method?.type)}
+                {!valid ? '—' : quote.isFetching ? t('计算中…', '…') : quote.isError || !quote.data ? '—' : moneyText(quote.data, method?.type, format, usdRate)}
               </strong>
             </span>
             <Button type="primary" size="large" loading={paying === method?.type} disabled={!valid || quote.isError} onClick={() => void pay()}>
@@ -164,7 +159,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
             </Button>
           </div>
           {quote.isError ? <Alert type="error" showIcon title={errorMessage(quote.error, t('暂时无法计算金额', 'Could not calculate the amount right now'))} /> : null}
-          <p className={styles.hint}>点击后会跳转到支付页面，付款成功后额度自动到账；实际币种和金额以支付页面为准。</p>
+          <p className={styles.hint}>{t('点击后会跳转到支付页面，付款成功后额度自动到账；实际币种和金额以支付页面为准。', 'You will be taken to the payment page; credit is added automatically after payment. The payment page shows the final currency and amount.')}</p>
         </div>
       ) : null}
 
@@ -175,7 +170,7 @@ function OnlineTopup({ info, format }: { info: TopupInfo; format: QuotaFormat })
               <strong>{product.name}</strong>
               <span>{t('到账', 'Credit')} {formatQuota(product.quota, format)}</span>
               <Button loading={paying === product.productId} onClick={() => void buy(product.productId)}>
-                {product.currency === 'EUR' ? '€' : '$'}{product.price} 购买
+                {t('购买', 'Buy')} {product.currency === 'EUR' ? '€' : '$'}{product.price}
               </Button>
             </div>
           ))}
@@ -241,6 +236,7 @@ export function WalletPage() {
   const updateUser = useAuthStore((state) => state.updateUser)
   const userId = storedUser?.id
   const format = useQuotaFormat()
+  const usdRate = usdExchangeRate(useSystemStatus().data)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
@@ -287,7 +283,7 @@ export function WalletPage() {
       title: t('实付', 'Paid'),
       dataIndex: 'money',
       align: 'right',
-      render: (value: number, record) => <span className={styles.mono}>{moneyText(value || 0, record.payment_method)}</span>,
+      render: (value: number, record) => <span className={styles.mono}>{moneyText(value || 0, record.payment_method, format, usdRate)}</span>,
     },
     {
       title: t('状态', 'Status'),
@@ -323,7 +319,7 @@ export function WalletPage() {
           <section className={styles.panel} aria-labelledby="online-title">
             <h2 id="online-title">{t('在线充值', 'Top up online')}</h2>
             {hasOnline ? (
-              <OnlineTopup info={topupInfo} format={format} />
+              <OnlineTopup info={topupInfo} format={format} usdRate={usdRate} />
             ) : (
               <p className={styles.hint}>
                 {topupInfo.enable_redemption ? t('站点暂未开通在线支付，可以使用右侧的兑换码充值。', 'Online payment is not enabled — use a redemption code on the right.') : t('站点暂未开通在线充值，请联系站长。', 'Online top-up is not enabled — contact the administrator.')}

@@ -1,3 +1,4 @@
+import type { QuotaFormat } from '@/features/console/quota'
 import { parseLoose } from '@/features/wallet/api'
 import type { CreemProduct, TopupInfo } from '@/features/wallet/api'
 
@@ -60,4 +61,18 @@ export function creemProducts(info: TopupInfo): CreemProduct[] {
 
 export function onlineTopupAvailable(info: TopupInfo): boolean {
   return paymentMethods(info).length > 0 || creemProducts(info).length > 0
+}
+
+/** 这些网关的币种以支付页为准，页面上只显示数字 */
+const FOREIGN_GATEWAYS = ['stripe', 'waffo', 'waffo_pancake', 'creem']
+
+/**
+ * 实付金额。易支付（支付宝、微信等）按人民币收款：
+ * 中文界面直接显示人民币；英文界面按后台汇率折成美元，并在后面注明实际扣的人民币，免得用户以为付的是美元。
+ */
+export function moneyText(value: string | number, method: string | undefined, format: QuotaFormat, usdRate: number): string {
+  const amount = Number(value) || 0
+  if (!method || FOREIGN_GATEWAYS.includes(method)) return amount.toFixed(2)
+  if (format.unit !== 'USD') return `¥${amount.toFixed(2)}`
+  return `$${(amount / usdRate).toFixed(2)} (charged ¥${amount.toFixed(2)})`
 }

@@ -67,7 +67,7 @@ function WeeklySpendChart({ days, peak, format }: { days: DayUsage[]; peak: numb
         height={CHART_HEIGHT}
         viewBox={`0 0 ${chartWidth} ${CHART_HEIGHT}`}
         role="img"
-        aria-label={t(`近7天消费趋势图，纵轴为人民币，横轴为日期。${chartDescription}`, `Last-7-day spend chart; CNY on Y, dates on X. ${chartDescription}`)}
+        aria-label={t(`近7天消费趋势图，纵轴为人民币，横轴为日期。${chartDescription}`, `Last-7-day spend chart; USD on Y, dates on X. ${chartDescription}`)}
       >
         {tickValues.map((value, index) => {
           const y = CHART_TOP + (plotHeight * index) / CHART_TICKS

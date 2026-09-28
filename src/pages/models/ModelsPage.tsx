@@ -175,7 +175,7 @@ export function ModelsPage() {
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th scope="col">{t('模型', 'Model')}</th><th scope="col">{t('智力', 'IQ')}</th><th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th><th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'CNY / M tokens')}</span></th></tr></thead>
+                <thead><tr><th scope="col">{t('模型', 'Model')}</th><th scope="col">{t('智力', 'IQ')}</th><th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th><th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th></tr></thead>
                 <tbody>
                   {visible.map((model) => (
                     <tr key={model.model_name}>
@@ -218,7 +218,7 @@ export function ModelsPage() {
               </table>
             </div>
           )}
-          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Prices are converted to CNY at the platform rate; multipliers, groups, and dynamic billing follow actual request settlement.')}</p>
+          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Prices are shown in USD; multipliers, groups, and dynamic billing follow actual request settlement.')}</p>
         </>
       ) : null}
     </div>

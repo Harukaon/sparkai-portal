@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { amountToQuota, formatQuota, quotaFormatFrom } from './quota'
 import { containsPattern, dailyUsage, rangeFor } from './usage'
 
-describe('额度显示（统一人民币）', () => {
+describe('额度显示（中文人民币 / 英文美元）', () => {
   it('500,000 额度 = 1 美元，按后台汇率换成人民币', () => {
     const format = quotaFormatFrom({ quota_per_unit: 500_000, usd_exchange_rate: 7.3 })
     expect(formatQuota(500_000, format)).toBe('¥7.30')
@@ -19,6 +19,13 @@ describe('额度显示（统一人民币）', () => {
   it('人民币金额与内部额度可互相换算', () => {
     const format = quotaFormatFrom({ quota_per_unit: 500_000, usd_exchange_rate: 7.3 })
     expect(amountToQuota(73, format)).toBe(5_000_000)
+  })
+
+  it('英文界面直接显示美元，不乘汇率', () => {
+    const format = quotaFormatFrom({ quota_per_unit: 500_000, usd_exchange_rate: 7.3 }, 'en')
+    expect(formatQuota(500_000, format)).toBe('$1.00')
+    expect(formatQuota(1_250_000, format)).toBe('$2.50')
+    expect(amountToQuota(10, format)).toBe(5_000_000)
   })
 })
 
