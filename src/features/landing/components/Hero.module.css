@@ -14,6 +14,44 @@
   display: grid;
   align-content: center;
   padding-block: clamp(16px, 3vh, 40px);
+  overflow: hidden;
+  background-image:
+    radial-gradient(ellipse at 13% 18%, rgba(222, 211, 187, 0.24), transparent 31%),
+    radial-gradient(ellipse at 84% 74%, rgba(234, 226, 210, 0.36), transparent 36%),
+    linear-gradient(rgba(157, 145, 119, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(157, 145, 119, 0.035) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+
+.stage::before,
+.stage::after {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgba(174, 160, 132, 0.13);
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.stage::before {
+  top: 50%;
+  left: -15rem;
+  width: 34rem;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  box-shadow:
+    0 0 0 42px rgba(174, 160, 132, 0.035),
+    0 0 0 84px rgba(174, 160, 132, 0.025);
+}
+
+.stage::after {
+  right: -17rem;
+  bottom: -25rem;
+  width: 47rem;
+  aspect-ratio: 1;
+  box-shadow:
+    0 0 0 52px rgba(174, 160, 132, 0.035),
+    0 0 0 104px rgba(174, 160, 132, 0.025);
 }
 
 .inner {
