@@ -1,4 +1,4 @@
-import { App as AntdApp, Button, Drawer } from 'antd'
+import { App as AntdApp, Button, Drawer, Tooltip } from 'antd'
 import { ArrowRightOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
@@ -14,20 +14,21 @@ import { siteName } from '@/shared/lib/env'
 
 import styles from './SiteHeader.module.css'
 
-/** 语言切换：中/英互换的小按钮 */
+/** 语言切换：纯图标小按钮，悬浮显示将切换到的语言 */
 function LangToggle() {
   const lang = useLang()
   const next = lang === 'zh' ? 'en' : 'zh'
+  const label = next === 'zh' ? '切换到中文' : 'Switch to English'
   return (
-    <Button
-      type="text"
-      className={styles.langToggle}
-      aria-label={next === 'zh' ? '切换到中文' : 'Switch to English'}
-      onClick={() => void setLang(next)}
-    >
-      <GlobalOutlined aria-hidden />
-      <span aria-hidden>{next === 'zh' ? '中文' : 'EN'}</span>
-    </Button>
+    <Tooltip title={label}>
+      <Button
+        type="text"
+        className={styles.langToggle}
+        aria-label={label}
+        icon={<GlobalOutlined aria-hidden />}
+        onClick={() => void setLang(next)}
+      />
+    </Tooltip>
   )
 }
 
