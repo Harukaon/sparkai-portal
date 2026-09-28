@@ -32,7 +32,7 @@
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) minmax(180px, 270px) minmax(150px, 210px);
+  grid-template-columns: minmax(200px, 1fr) minmax(170px, 250px) minmax(140px, 190px) minmax(140px, 170px);
   gap: var(--space-3);
   margin-bottom: var(--space-5);
 }
@@ -57,7 +57,7 @@
 
 .table {
   width: 100%;
-  min-width: 740px;
+  min-width: 820px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -71,8 +71,9 @@
   font-weight: 600;
 }
 
-.table th:first-child { width: 46%; }
-.table th:nth-child(2) { width: 30%; }
+.table th:first-child { width: 38%; }
+.table th:nth-child(2) { width: 14%; }
+.table th:nth-child(3) { width: 24%; }
 
 .table td {
   padding: var(--space-4) var(--space-5);
@@ -168,4 +169,33 @@
   .page { padding: var(--space-8) var(--space-4) var(--space-12); }
   .head { align-items: flex-start; flex-direction: column; }
   .filters { grid-template-columns: 1fr; }
+}
+
+/* 智力：分数 + 一条按分数长短的细条 */
+.iq {
+  display: grid;
+  gap: 6px;
+  width: 88px;
+}
+
+.iq strong {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.iqTrack {
+  display: block;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.iqBar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
 }

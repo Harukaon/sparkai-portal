@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { useAuthStore } from '@/features/auth/auth-store'
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
+import { intelligenceOf, sortByIntelligence, useIntelligence } from '@/features/models/intelligence'
 import { formatUsdAsCny, useQuotaFormat } from '@/features/console/quota'
 import type { QuotaFormat } from '@/features/console/quota'
 import { matchesGroup, modelPrice } from '@/features/models/pricing'
@@ -27,6 +28,18 @@ function PriceLabel({ price, format }: { price: ModelPrice; format: QuotaFormat 
   )
 }
 
+function IntelligenceCell({ score }: { score?: number }) {
+  if (score === undefined) return <span className={styles.muted}>—</span>
+  return (
+    <div className={styles.iq} aria-label={`智力 ${score} 分`}>
+      <strong>{score}</strong>
+      <span className={styles.iqTrack} aria-hidden="true">
+        <span className={styles.iqBar} style={{ width: `${score}%` }} />
+      </span>
+    </div>
+  )
+}
+
 function vendorName(model: PricingModel, vendors: PricingVendor[]): string {
   return vendors.find((vendor) => vendor.id === model.vendor_id)?.name || model.owner_by || '其他'
 }
@@ -40,6 +53,8 @@ export function ModelsPage() {
   const [keyword, setKeyword] = useState('')
   const [groupChoice, setGroupChoice] = useState('')
   const [vendorChoice, setVendorChoice] = useState('all')
+  const [sortBy, setSortBy] = useState<'iq' | 'name'>('iq')
+  const intelligence = useIntelligence()
 
   const data = pricing.data
   const groups = Object.entries(data?.usable_group ?? {})
@@ -51,7 +66,7 @@ export function ModelsPage() {
 
   const visible = useMemo(() => {
     const search = keyword.trim().toLowerCase()
-    return (data?.data ?? []).filter((model) => {
+    const matched = (data?.data ?? []).filter((model) => {
       if (group === 'auto') {
         if (!model.enable_groups.includes('all') && !(data?.auto_groups ?? []).some((candidate) => matchesGroup(model, candidate))) return false
       } else if (group && !matchesGroup(model, group)) return false
@@ -59,7 +74,10 @@ export function ModelsPage() {
       if (vendorChoice !== 'all' && vendor !== vendorChoice) return false
       return !search || `${model.model_name} ${model.description ?? ''} ${vendor}`.toLowerCase().includes(search)
     })
-  }, [data, group, keyword, vendorChoice, vendors])
+    return sortBy === 'iq'
+      ? sortByIntelligence(matched, intelligence.data)
+      : [...matched].sort((a, b) => a.model_name.localeCompare(b.model_name))
+  }, [data, group, keyword, vendorChoice, vendors, sortBy, intelligence.data])
 
   async function copyModel(id: string) {
     try {
@@ -102,6 +120,12 @@ export function ModelsPage() {
               onChange={setVendorChoice}
               options={[{ label: '全部厂商', value: 'all' }, ...Array.from(new Set(data.data.map((model) => vendorName(model, vendors)))).sort().map((name) => ({ label: name, value: name }))]}
             />
+            <Select
+              aria-label="排序方式"
+              value={sortBy}
+              onChange={setSortBy}
+              options={[{ label: '智力从高到低', value: 'iq' }, { label: '按名称', value: 'name' }]}
+            />
           </div>
           {group === 'auto' ? <p className={styles.hint}>自动分组会在调用时选定，最终价格以实际命中的分组为准。</p> : null}
           {visible.length === 0 ? (
@@ -111,7 +135,7 @@ export function ModelsPage() {
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th scope="col">模型</th><th scope="col">厂商与能力</th><th scope="col">本站价格（人民币）</th></tr></thead>
+                <thead><tr><th scope="col">模型</th><th scope="col">智力</th><th scope="col">厂商与能力</th><th scope="col">本站价格（人民币）</th></tr></thead>
                 <tbody>
                   {visible.map((model) => (
                     <tr key={model.model_name}>
@@ -125,6 +149,7 @@ export function ModelsPage() {
                           <Button type="text" size="small" aria-label={`复制 ${model.model_name} 的调用名称`} icon={<CopyOutlined />} onClick={() => void copyModel(model.model_name)} />
                         </div>
                       </td>
+                      <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
                       <td>
                         <div className={styles.meta}><span>{vendorName(model, vendors)}</span>
                           {(model.supported_endpoint_types ?? []).slice(0, 3).map((endpoint) => <Tag key={endpoint}>{endpoint}</Tag>)}
@@ -139,7 +164,7 @@ export function ModelsPage() {
               </table>
             </div>
           )}
-          <p className={styles.footnote}>价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。</p>
+          <p className={styles.footnote}>智力为本站综合评估分（0–100），仅供选型参考。价格按后台汇率换算为人民币显示；倍率、分组及动态计费规则以实际请求结算为准。</p>
         </>
       ) : null}
     </div>
