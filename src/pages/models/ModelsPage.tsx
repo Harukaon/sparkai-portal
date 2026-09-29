@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
-import { officialPriceFor, useOfficialPricing } from '@/features/models/official-pricing'
+import { officialPriceOf, useOfficialPricing } from '@/features/models/official-pricing'
 import { intelligenceOf, sortByIntelligence, useIntelligence } from '@/features/models/intelligence'
 import { formatUsdAsCny, usdExchangeRate, useQuotaFormat } from '@/features/console/quota'
 import { useSystemStatus } from '@/features/auth/hooks'
@@ -94,7 +94,7 @@ function CheapestPrice({ rows, format, t }: { rows: GroupPriceRow[]; format: Quo
 
 /** 官方参考价 + 本站便宜多少 */
 function OfficialPrice({ official, ours, rate, t }: { official?: { input?: number | null; output?: number | null }; ours: ModelPrice[]; rate: number; t: (zh: string, en: string) => string }) {
-  if (official?.input == null || official.output == null) return <span className={styles.muted}>{t('暂无参考价', 'No reference price')}</span>
+  if (official?.input == null || official.output == null) return <span className={styles.muted}>{t('暂无官方价', 'No official price')}</span>
   const tokens = ours.filter((price) => price.kind === 'tokens')
   const best = tokens.length ? Math.min(...tokens.map(priceWeight)) : undefined
   const officialSum = official.input + official.output
@@ -243,11 +243,11 @@ export function ModelsPage() {
               ]}
             />
             <Button type={showOfficial ? 'primary' : 'default'} onClick={() => setShowOfficial((shown) => !shown)} aria-pressed={showOfficial}>
-              {showOfficial ? t('收起官方价', 'Hide reference prices') : t('对比官方', 'Compare official prices')}
+              {showOfficial ? t('收起官方价', 'Hide official prices') : t('对比官方', 'Compare official prices')}
             </Button>
-            {showOfficial && officialPricing.data ? <span>{t(`参考来源：models.dev · 更新于 ${new Date(officialPricing.data.updatedAt).toLocaleDateString('zh-CN')}`, `Reference: models.dev · Updated ${new Date(officialPricing.data.updatedAt).toLocaleDateString('en-US')}`)}</span> : null}
+            {showOfficial && officialPricing.data ? <span>{t(`官方价更新于 ${new Date(officialPricing.data.updatedAt).toLocaleDateString('zh-CN')}`, `Official prices updated ${new Date(officialPricing.data.updatedAt).toLocaleDateString('en-US')}`)}</span> : null}
           </div>
-          {showOfficial && officialPricing.isError ? <Alert className={styles.officialAlert} type="warning" showIcon title={t('官方参考价暂时无法读取', 'Reference prices are temporarily unavailable')} /> : null}
+          {showOfficial && officialPricing.isError ? <Alert className={styles.officialAlert} type="warning" showIcon title={t('官方价格暂时无法读取', 'Official prices are temporarily unavailable')} /> : null}
           {visible.length === 0 ? (
             <div className={styles.empty}>
               <Empty description={data.data.length ? t('没有符合筛选条件的模型，换个条件试试', 'No models match these filters — try different ones') : t('当前还没有开放的模型，请稍后再来查看', 'No models are open yet — check back later')} />
@@ -264,7 +264,7 @@ export function ModelsPage() {
                 <OfficialPrice
                   t={t}
                   rate={officialRate}
-                  official={officialPriceFor(model.model_name, officialPricing.data?.models ?? [])?.prices.modelsDev}
+                  official={officialPriceOf(model.model_name, officialPricing.data)}
                   ours={group === 'all' ? rowsOf(model).map((row) => row.price) : [modelPrice(model, data.group_ratio?.[group])]}
                 />
               )
@@ -298,7 +298,7 @@ export function ModelsPage() {
                         </div>
                         {showOfficial ? (
                           <div>
-                            <span className={styles.cardLabel}>{t('官方参考', 'Reference')}{refUnit}</span>
+                            <span className={styles.cardLabel}>{t('官方价格', 'Official price')}{refUnit}</span>
                             {officialPrice(model)}
                           </div>
                         ) : null}
@@ -317,7 +317,7 @@ export function ModelsPage() {
                         <th scope="col">{t('智力', 'IQ')}</th>
                         <th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th>
                         <th scope="col">{t('本站价格', 'Our price')}{ourUnit}</th>
-                        {showOfficial ? <th scope="col">{t('models.dev 参考价', 'models.dev reference')}{refUnit}</th> : null}
+                        {showOfficial ? <th scope="col">{t('官方价格', 'Official price')}{refUnit}</th> : null}
                       </tr>
                     </thead>
                     <tbody>
@@ -350,7 +350,7 @@ export function ModelsPage() {
               )
             })()
           )}
-          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。本站价格按当前语言显示；models.dev 参考价按后台汇率换算为人民币。实际价格以请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Our prices follow the selected language; models.dev reference prices are converted to CNY using the current exchange rate. Actual billing follows request settlement.')}</p>
+          <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。本站价格按当前语言显示；官方价格按后台汇率换算为人民币。实际价格以请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Our prices follow the selected language; official prices are converted to CNY using the current exchange rate. Actual billing follows request settlement.')}</p>
         </>
       ) : null}
     </div>

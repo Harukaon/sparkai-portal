@@ -18,10 +18,33 @@ interface OfficialPricingFile {
   models: OfficialPriceEntry[]
 }
 
-async function fetchOfficialPricing(): Promise<OfficialPricingFile> {
-  const response = await fetch('/official-pricing.json', { cache: 'no-cache' })
-  if (!response.ok) throw new Error(`Official pricing unavailable: ${response.status}`)
-  return response.json() as Promise<OfficialPricingFile>
+/** 手工维护表：键是本站模型调用名称，优先级高于自动抓取的参考价 */
+interface OfficialPricingOverrides {
+  models: Record<string, OfficialModelPrice>
+}
+
+export interface OfficialPricing extends OfficialPricingFile {
+  overrides: Record<string, OfficialModelPrice>
+}
+
+async function fetchOfficialPricing(): Promise<OfficialPricing> {
+  const [auto, manual] = await Promise.all([
+    fetch('/official-pricing.json', { cache: 'no-cache' }),
+    // 手工表取不到时不影响自动参考价
+    fetch('/official-pricing-overrides.json', { cache: 'no-cache' }).catch(() => undefined),
+  ])
+  if (!auto.ok) throw new Error(`Official pricing unavailable: ${auto.status}`)
+  const file = await auto.json() as OfficialPricingFile
+  const overrides = manual?.ok ? ((await manual.json()) as OfficialPricingOverrides).models ?? {} : {}
+  return { ...file, overrides }
+}
+
+/** 取某个模型的官方价：先查手工表（名称完全一致），再退回自动抓取的参考价 */
+export function officialPriceOf(modelName: string, pricing?: OfficialPricing): OfficialModelPrice | undefined {
+  if (!pricing) return undefined
+  const manual = pricing.overrides[modelName]
+  if (manual?.input != null && manual.output != null) return manual
+  return officialPriceFor(modelName, pricing.models)?.prices.modelsDev
 }
 
 export function useOfficialPricing(enabled: boolean) {
