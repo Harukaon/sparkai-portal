@@ -135,7 +135,6 @@ export function ModelsPage() {
   const systemStatus = useSystemStatus()
   const officialRate = usdExchangeRate(systemStatus.data)
   const [showOfficial, setShowOfficial] = useState(false)
-  const officialPricing = useOfficialPricing(showOfficial)
   const [keyword, setKeyword] = useState('')
   const [groupChoice, setGroupChoice] = useState('all')
   const [vendorChoice, setVendorChoice] = useState('all')
@@ -150,6 +149,9 @@ export function ModelsPage() {
     setViewState(next)
     window.localStorage.setItem('sparkai.modelsView', next)
   }
+  // 卡片模式默认带官方价；表格模式点「对比官方」才显示
+  const officialShown = showOfficial || view === 'card'
+  const officialPricing = useOfficialPricing(officialShown)
   const intelligence = useIntelligence()
   const showAllEndpointTypes = import.meta.env.DEV && typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('previewEndpoints')
@@ -242,12 +244,12 @@ export function ModelsPage() {
                 { value: 'card', icon: <AppstoreOutlined />, label: t('卡片', 'Cards') },
               ]}
             />
-            <Button type={showOfficial ? 'primary' : 'default'} onClick={() => setShowOfficial((shown) => !shown)} aria-pressed={showOfficial}>
+            {view === 'table' ? <Button type={showOfficial ? 'primary' : 'default'} onClick={() => setShowOfficial((shown) => !shown)} aria-pressed={showOfficial}>
               {showOfficial ? t('收起官方价', 'Hide official prices') : t('对比官方', 'Compare official prices')}
-            </Button>
-            {showOfficial && officialPricing.data ? <span>{t(`官方价更新于 ${new Date(officialPricing.data.updatedAt).toLocaleDateString('zh-CN')}`, `Official prices updated ${new Date(officialPricing.data.updatedAt).toLocaleDateString('en-US')}`)}</span> : null}
+            </Button> : null}
+            {officialShown && officialPricing.data ? <span>{t(`官方价更新于 ${new Date(officialPricing.data.updatedAt).toLocaleDateString('zh-CN')}`, `Official prices updated ${new Date(officialPricing.data.updatedAt).toLocaleDateString('en-US')}`)}</span> : null}
           </div>
-          {showOfficial && officialPricing.isError ? <Alert className={styles.officialAlert} type="warning" showIcon title={t('官方价格暂时无法读取', 'Official prices are temporarily unavailable')} /> : null}
+          {officialShown && officialPricing.isError ? <Alert className={styles.officialAlert} type="warning" showIcon title={t('官方价格暂时无法读取', 'Official prices are temporarily unavailable')} /> : null}
           {visible.length === 0 ? (
             <div className={styles.empty}>
               <Empty description={data.data.length ? t('没有符合筛选条件的模型，换个条件试试', 'No models match these filters — try different ones') : t('当前还没有开放的模型，请稍后再来查看', 'No models are open yet — check back later')} />
@@ -296,7 +298,7 @@ export function ModelsPage() {
                           <span className={styles.cardLabel}>{t('本站价格', 'Our price')}{ourUnit}</span>
                           {ourPrice(model)}
                         </div>
-                        {showOfficial ? (
+                        {officialShown ? (
                           <div>
                             <span className={styles.cardLabel}>{t('官方价格', 'Official price')}{refUnit}</span>
                             {officialPrice(model)}
