@@ -41,11 +41,10 @@ export interface TokenTier {
   upToLen?: number
   input: number
   output: number
-  cacheRead?: number
 }
 
 export type ModelPrice =
-  | { kind: 'tokens'; input: number; output: number; cacheRead?: number }
+  | { kind: 'tokens'; input: number; output: number }
   | { kind: 'tiers'; tiers: TokenTier[] }
   | { kind: 'request'; each: number }
   | { kind: 'dynamic' }
@@ -68,12 +67,11 @@ export function modelPrice(model: PricingModel, groupRatio?: number): ModelPrice
       upToLen: tier.upToLen,
       input: tier.input * groupRatio,
       output: tier.output * groupRatio,
-      cacheRead: tier.cacheRead === undefined ? undefined : tier.cacheRead * groupRatio,
     }))
     const [only, ...more] = scaled
     if (!only) return { kind: 'dynamic' }
     if (more.length > 0) return { kind: 'tiers', tiers: scaled }
-    return { kind: 'tokens', input: only.input, output: only.output, cacheRead: only.cacheRead }
+    return { kind: 'tokens', input: only.input, output: only.output }
   }
   if (groupRatio === undefined || !Number.isFinite(groupRatio)) return { kind: 'unknown' }
   if (model.quota_type === 1) {

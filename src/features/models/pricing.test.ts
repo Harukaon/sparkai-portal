@@ -35,7 +35,7 @@ describe('模型定价', () => {
     }
 
     it('单档表达式显示真实价格，不再只写「动态计费」；残留的 model_ratio 兜底值不参与', () => {
-      expect(modelPrice(glm, 1)).toEqual({ kind: 'tokens', input: 0.15, output: 0.5, cacheRead: 0.03 })
+      expect(modelPrice(glm, 1)).toEqual({ kind: 'tokens', input: 0.15, output: 0.5 })
     })
 
     it('表达式结果同样再乘分组倍率（与后端结算一致）', () => {
@@ -44,7 +44,6 @@ describe('模型定价', () => {
       if (result.kind === 'tokens') {
         expect(result.input).toBeCloseTo(0.3)
         expect(result.output).toBeCloseTo(1)
-        expect(result.cacheRead).toBeCloseTo(0.06)
       }
     })
 
@@ -60,8 +59,8 @@ describe('模型定价', () => {
       expect(modelPrice(tiered, 0.5)).toEqual({
         kind: 'tiers',
         tiers: [
-          { name: 'standard', upToLen: 272000, input: 5, output: 25, cacheRead: undefined },
-          { name: 'long_context', upToLen: undefined, input: 10, output: 37.5, cacheRead: undefined },
+          { name: 'standard', upToLen: 272000, input: 5, output: 25 },
+          { name: 'long_context', upToLen: undefined, input: 10, output: 37.5 },
         ],
       })
     })

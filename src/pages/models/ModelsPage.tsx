@@ -23,20 +23,14 @@ const EMPTY_VENDORS: PricingVendor[] = []
 
 type Translate = (zh: string, en: string) => string
 
-/** 一组 token 单价：输入 / 输出，动态计费还可能带缓存命中价 */
-function TokenRows({ price, format, t }: { price: { input: number; output: number; cacheRead?: number }; format: QuotaFormat; t: Translate }) {
+/** 一组 token 单价：输入 / 输出（模型列表不展示缓存价） */
+function TokenRows({ price, format, t }: { price: { input: number; output: number }; format: QuotaFormat; t: Translate }) {
   return (
     <dl className={styles.priceStack}>
       <dt>{t('输入', 'Input')}</dt>
       <dd>{formatUsdAsCny(price.input, format)}</dd>
       <dt>{t('输出', 'Output')}</dt>
       <dd>{formatUsdAsCny(price.output, format)}</dd>
-      {price.cacheRead !== undefined ? (
-        <>
-          <dt>{t('缓存命中', 'Cache hit')}</dt>
-          <dd>{formatUsdAsCny(price.cacheRead, format)}</dd>
-        </>
-      ) : null}
     </dl>
   )
 }

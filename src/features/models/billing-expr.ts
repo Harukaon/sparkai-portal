@@ -4,6 +4,7 @@
  * 后端事实（new-api `pkg/billingexpr`）：
  * - 表达式里的系数就是「美元 / 百万 token」的真实价格，不是倍率；
  * - `p` 输入、`c` 输出、`cr` 缓存命中、`cc` 缓存写入；`len` 是输入上下文总长度；
+ * - 缓存价（cr / cc）会被接受但不输出：模型列表不展示缓存价格；
  * - 结算时结果还要再乘分组倍率（本文件只解析，倍率由调用方乘）。
  *
  * 只认两种写法，其余一律返回 `null`，调用方保持「动态计费，请以实际用量为准」：
@@ -23,7 +24,6 @@ export interface ExprTier {
   /** 以下均为美元 / 百万 token，未乘分组倍率 */
   input: number
   output: number
-  cacheRead?: number
 }
 
 type Token =
@@ -35,7 +35,7 @@ type Token =
 const TOKEN_PATTERN =
   /\s*(?:([A-Za-z_][A-Za-z0-9_]*)|(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|"([^"]*)"|(<=|[(),*+?:<]))/y
 
-/** 表达式里出现即可被识别的变量；其它变量（图片、音频等）会让整条表达式被放弃 */
+/** 表达式里允许出现的变量（cr、cc 是缓存价，接受但不展示）；其它变量会让整条表达式被放弃 */
 const PRICED_VARIABLES = new Set(['p', 'c', 'cr', 'cc'])
 
 function tokenize(source: string): Token[] | null {
@@ -119,7 +119,7 @@ class Parser {
     this.expectPunct(')')
     // 只有输入没有输出（或反过来）无法确定另一侧是免费还是忘了写，不猜
     if (coefficients.p === undefined || coefficients.c === undefined) throw new Unsupported('needs p and c')
-    return { name: name.value, input: coefficients.p, output: coefficients.c, cacheRead: coefficients.cr }
+    return { name: name.value, input: coefficients.p, output: coefficients.c }
   }
 
   /** linear := term ('+' term)*，term := VAR '*' NUMBER */

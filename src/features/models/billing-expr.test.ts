@@ -8,22 +8,21 @@ const GPT_TIERED =
   'len <= 272000 ? tier("standard", p * 10 + c * 50 + cr * 1 + cc * 12.5) : tier("long_context", p * 20 + c * 75 + cr * 2 + cc * 25)'
 
 describe('parseBillingExpr：认得出的写法', () => {
-  it('单档：解析出输入、输出、缓存命中价（缓存写入价暂不展示）', () => {
-    expect(parseBillingExpr(GLM_FLASH)).toEqual([
-      { name: 'standard', input: 0.15, output: 0.5, cacheRead: 0.03 },
-    ])
+  it('单档：解析出输入、输出价', () => {
+    expect(parseBillingExpr(GLM_FLASH)).toEqual([{ name: 'standard', input: 0.15, output: 0.5 }])
   })
 
-  it('没有缓存项时 cacheRead 为空，不编一个价格', () => {
-    const [tier] = parseBillingExpr('tier("base", p * 2 + c * 8)') ?? []
-    expect(tier?.cacheRead).toBeUndefined()
-    expect(tier).toMatchObject({ input: 2, output: 8 })
+  it('缓存项（cr / cc）能被接受，但结果里没有缓存价：模型列表不展示缓存价格', () => {
+    const [withCache] = parseBillingExpr(GLM_FLASH) ?? []
+    const [withoutCache] = parseBillingExpr('tier("standard", p * 0.15 + c * 0.5)') ?? []
+    expect(withCache).toEqual(withoutCache)
+    expect(withCache).not.toHaveProperty('cacheRead')
   })
 
   it('按输入长度分档：前面的档带上限，最后一档没有上限', () => {
     expect(parseBillingExpr(GPT_TIERED)).toEqual([
-      { name: 'standard', upToLen: 272000, input: 10, output: 50, cacheRead: 1 },
-      { name: 'long_context', input: 20, output: 75, cacheRead: 2 },
+      { name: 'standard', upToLen: 272000, input: 10, output: 50 },
+      { name: 'long_context', input: 20, output: 75 },
     ])
   })
 
