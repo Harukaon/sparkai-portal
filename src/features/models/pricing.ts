@@ -1,3 +1,5 @@
+import { parseBillingExpr } from './billing-expr'
+
 export interface PricingModel {
   model_name: string
   description?: string
@@ -32,8 +34,19 @@ export interface PricingResponse {
   auto_groups?: string[]
 }
 
+/** 按输入长度分档的一档；单位与 `tokens` 相同（美元 / 百万 token，已乘分组倍率） */
+export interface TokenTier {
+  name: string
+  /** 输入上下文长度上限（含）；最后一档没有上限 */
+  upToLen?: number
+  input: number
+  output: number
+  cacheRead?: number
+}
+
 export type ModelPrice =
-  | { kind: 'tokens'; input: number; output: number }
+  | { kind: 'tokens'; input: number; output: number; cacheRead?: number }
+  | { kind: 'tiers'; tiers: TokenTier[] }
   | { kind: 'request'; each: number }
   | { kind: 'dynamic' }
   | { kind: 'unknown' }
@@ -41,10 +54,27 @@ export type ModelPrice =
 /**
  * 后端倍率定价：1M 输入 token 的美元价格是 model_ratio × 2 × group_ratio；
  * 输出再乘 completion_ratio。按次模型则是 model_price × group_ratio 美元/次。
+ * 动态计费（表达式）的系数本身就是美元 / 百万 token，结算时同样再乘 group_ratio；
+ * 表达式读不懂时保持 `dynamic`，不猜价格。
  * 自动分组无法预知最终倍率，因此不能冒充一个固定价格。
  */
 export function modelPrice(model: PricingModel, groupRatio?: number): ModelPrice {
-  if (model.billing_mode === 'tiered_expr' || model.billing_expr) return { kind: 'dynamic' }
+  if (model.billing_mode === 'tiered_expr' || model.billing_expr) {
+    const tiers = model.billing_expr ? parseBillingExpr(model.billing_expr) : null
+    if (!tiers) return { kind: 'dynamic' }
+    if (groupRatio === undefined || !Number.isFinite(groupRatio)) return { kind: 'unknown' }
+    const scaled = tiers.map((tier): TokenTier => ({
+      name: tier.name,
+      upToLen: tier.upToLen,
+      input: tier.input * groupRatio,
+      output: tier.output * groupRatio,
+      cacheRead: tier.cacheRead === undefined ? undefined : tier.cacheRead * groupRatio,
+    }))
+    const [only, ...more] = scaled
+    if (!only) return { kind: 'dynamic' }
+    if (more.length > 0) return { kind: 'tiers', tiers: scaled }
+    return { kind: 'tokens', input: only.input, output: only.output, cacheRead: only.cacheRead }
+  }
   if (groupRatio === undefined || !Number.isFinite(groupRatio)) return { kind: 'unknown' }
   if (model.quota_type === 1) {
     return { kind: 'request', each: model.model_price * groupRatio }

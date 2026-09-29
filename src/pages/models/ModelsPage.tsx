@@ -11,9 +11,9 @@ import { formatUsdAsCny, usdExchangeRate, useQuotaFormat } from '@/features/cons
 import { useSystemStatus } from '@/features/auth/hooks'
 import type { QuotaFormat } from '@/features/console/quota'
 import { matchesGroup, modelPrice } from '@/features/models/pricing'
-import type { ModelPrice, PricingModel, PricingVendor } from '@/features/models/pricing'
+import type { ModelPrice, PricingModel, PricingVendor, TokenTier } from '@/features/models/pricing'
 import { usePageTitle } from '@/shared/hooks/use-page-title'
-import { formatMoney } from '@/shared/lib/format'
+import { formatContextLength, formatMoney } from '@/shared/lib/format'
 import { useT } from '@/shared/i18n'
 import { EndpointTags } from '@/features/models/EndpointTags'
 
@@ -21,18 +21,58 @@ import styles from './ModelsPage.module.css'
 
 const EMPTY_VENDORS: PricingVendor[] = []
 
-function PriceLabel({ price, format, t }: { price: ModelPrice; format: QuotaFormat; t: (zh: string, en: string) => string }) {
-  if (price.kind === 'dynamic') return <span className={styles.muted}>{t('动态计费，请以实际用量为准', 'Dynamic billing — based on actual usage')}</span>
-  if (price.kind === 'unknown') return <span className={styles.muted}>{t('按实际选择的分组计费', 'Billed by the selected group')}</span>
-  if (price.kind === 'request') return <span><strong>{formatUsdAsCny(price.each, format)}</strong><small> {t('/ 次', '/ call')}</small></span>
+type Translate = (zh: string, en: string) => string
+
+/** 一组 token 单价：输入 / 输出，动态计费还可能带缓存命中价 */
+function TokenRows({ price, format, t }: { price: { input: number; output: number; cacheRead?: number }; format: QuotaFormat; t: Translate }) {
   return (
     <dl className={styles.priceStack}>
       <dt>{t('输入', 'Input')}</dt>
       <dd>{formatUsdAsCny(price.input, format)}</dd>
       <dt>{t('输出', 'Output')}</dt>
       <dd>{formatUsdAsCny(price.output, format)}</dd>
+      {price.cacheRead !== undefined ? (
+        <>
+          <dt>{t('缓存命中', 'Cache hit')}</dt>
+          <dd>{formatUsdAsCny(price.cacheRead, format)}</dd>
+        </>
+      ) : null}
     </dl>
   )
+}
+
+/** 分档的说明：前面的档是「上下文 ≤ N」，最后一档是「上下文 > 上一档上限」 */
+function tierLabel(tiers: TokenTier[], index: number, t: Translate): string {
+  const tier = tiers[index]
+  const limit = tier?.upToLen ?? tiers[index - 1]?.upToLen
+  if (limit === undefined) return tier?.name ?? ''
+  const size = formatContextLength(limit)
+  return tier?.upToLen !== undefined ? t(`上下文 ≤ ${size}`, `Context ≤ ${size}`) : t(`上下文 > ${size}`, `Context > ${size}`)
+}
+
+function PriceLabel({ price, format, t }: { price: ModelPrice; format: QuotaFormat; t: Translate }) {
+  if (price.kind === 'dynamic') return <span className={styles.muted}>{t('动态计费，请以实际用量为准', 'Dynamic billing — based on actual usage')}</span>
+  if (price.kind === 'unknown') return <span className={styles.muted}>{t('按实际选择的分组计费', 'Billed by the selected group')}</span>
+  if (price.kind === 'request') return <span><strong>{formatUsdAsCny(price.each, format)}</strong><small> {t('/ 次', '/ call')}</small></span>
+  if (price.kind === 'tiers') {
+    return (
+      <div className={styles.tiers}>
+        {price.tiers.map((tier, index) => (
+          <div key={tier.name}>
+            <span className={styles.tierLabel}>{tierLabel(price.tiers, index, t)}</span>
+            <TokenRows price={tier} format={format} t={t} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return <TokenRows price={price} format={format} t={t} />
+}
+
+/** 分档模型取第一档（起步价）；单档模型就是它自己 */
+function basePrice(price: Extract<ModelPrice, { kind: 'tokens' | 'tiers' }>): { input: number; output: number } {
+  if (price.kind === 'tokens') return price
+  return price.tiers[0] ?? { input: Number.NaN, output: Number.NaN }
 }
 
 /** 「全部分组」时：每个可用分组一行，列出该分组下的输入/输出价 */
@@ -46,10 +86,11 @@ function GroupPrices({ rows, format, t }: { rows: { name: string; ratio?: number
             {ratio !== undefined ? <span className={styles.ratio}>×{ratio}</span> : null}
           </dt>
           <dd>
-            {price.kind === 'tokens' ? (
+            {price.kind === 'tokens' || price.kind === 'tiers' ? (
               <>
-                <span><small>{t('入', 'In')}</small> {formatUsdAsCny(price.input, format)}</span>
-                <span><small>{t('出', 'Out')}</small> {formatUsdAsCny(price.output, format)}</span>
+                <span><small>{t('入', 'In')}</small> {formatUsdAsCny(basePrice(price).input, format)}</span>
+                <span><small>{t('出', 'Out')}</small> {formatUsdAsCny(basePrice(price).output, format)}</span>
+                {price.kind === 'tiers' ? <small>{t('起', 'from')}</small> : null}
               </>
             ) : price.kind === 'request' ? (
               <span>{formatUsdAsCny(price.each, format)}<small> {t('/ 次', '/ call')}</small></span>
@@ -67,7 +108,10 @@ type GroupPriceRow = { name: string; ratio?: number; price: ModelPrice }
 
 /** 用来比较贵贱的一个数：按 token 计费取「输入+输出」，按次取单次价 */
 function priceWeight(price: ModelPrice): number {
-  if (price.kind === 'tokens') return price.input + price.output
+  if (price.kind === 'tokens' || price.kind === 'tiers') {
+    const base = basePrice(price)
+    return base.input + base.output
+  }
   if (price.kind === 'request') return price.each
   return Number.POSITIVE_INFINITY
 }

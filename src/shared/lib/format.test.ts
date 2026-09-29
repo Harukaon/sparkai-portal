@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { cn, formatCompact, formatInt, formatMoney, formatPercent } from './format'
+import { cn, formatCompact, formatContextLength, formatInt, formatMoney, formatPercent } from './format'
 
 describe('cn', () => {
   it('拼接有效类名并过滤空值', () => {
@@ -28,6 +28,16 @@ describe('formatCompact', () => {
   })
 })
 
+describe('formatContextLength', () => {
+  it('把 token 数写成 K / M', () => {
+    expect(formatContextLength(272000)).toBe('272K')
+    expect(formatContextLength(1_000_000)).toBe('1M')
+    expect(formatContextLength(1_500_000)).toBe('1.5M')
+    expect(formatContextLength(1500)).toBe('1.5K')
+    expect(formatContextLength(200_000)).toBe('200K')
+  })
+})
+
 describe('formatMoney', () => {
   it('常规金额保留两位并加千分位', () => {
     expect(formatMoney(12345.678)).toBe('¥12,345.68')
@@ -48,6 +58,17 @@ describe('formatMoney', () => {
 
   it('负数也带千分位', () => {
     expect(formatMoney(-1234.5)).toBe('¥-1,234.50')
+  })
+
+  it('恰好在半分上的价格按十进制四舍五入（toFixed 会因浮点误差少进一位）', () => {
+    // $0.15 按汇率 7.3 折算：官方价与本站价必须显示成同一个数
+    expect(formatMoney(0.15 * 7.3, '¥', 2)).toBe('¥1.10')
+    expect(formatMoney(0.6 * 7.3, '¥', 2)).toBe('¥4.38')
+    expect(formatMoney(1.005, '$', 2)).toBe('$1.01')
+  })
+
+  it('指定 0 位小数时不带小数点', () => {
+    expect(formatMoney(1234.5, '¥', 0)).toBe('¥1,235')
   })
 })
 

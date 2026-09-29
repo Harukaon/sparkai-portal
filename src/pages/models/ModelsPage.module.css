@@ -193,6 +193,15 @@
   text-align: right;
 }
 
+/* 按输入长度分档：每档一个小标题 + 一组输入/输出价 */
+.tiers { display: grid; gap: var(--space-3); }
+.tierLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+}
+
 .thUnit {
   margin-left: var(--space-2);
   color: var(--color-ink-subtle);
