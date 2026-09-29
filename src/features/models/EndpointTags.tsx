@@ -9,12 +9,11 @@ import styles from './EndpointTags.module.css'
  * 接口类型：小图标 + 悬浮显示全名。
  *
  * openai / anthropic / gemini 用对应品牌图标；
- * openai-response 属于 OpenAI 的 Responses 协议，同样用 OpenAI 图标。
+ * openai-response（Responses / WS 协议）用「WS」小标，避免和 openai 出现两个一样的图标。
  * 没有对应图标的类型退回文字标签。
  */
 const BRAND_BY_ENDPOINT: Record<string, string> = {
   openai: 'OpenAI',
-  'openai-response': 'OpenAI',
   anthropic: 'Anthropic',
   'anthropic-chat': 'Anthropic',
   gemini: 'Gemini',
@@ -26,6 +25,13 @@ export function EndpointTags({ endpoints }: { endpoints: string[] }) {
     <div className={styles.tags}>
       {endpoints.map((endpoint) => {
         const brand = BRAND_BY_ENDPOINT[endpoint.toLowerCase()]
+        if (endpoint.toLowerCase() === 'openai-response') {
+          return (
+            <Tooltip key={endpoint} title={endpointLabel(endpoint)}>
+              <span className={`${styles.chip} ${styles.wsChip}`} role="img" aria-label={endpointLabel(endpoint)}>WS</span>
+            </Tooltip>
+          )
+        }
         if (!brand) {
           return (
             <Tooltip key={endpoint} title={endpointLabel(endpoint)}>

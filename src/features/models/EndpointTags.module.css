@@ -30,3 +30,12 @@
   justify-content: center;
   line-height: 0;
 }
+
+/* WS 协议：等宽粗体小字，和品牌图标同尺寸 */
+.wsChip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+}

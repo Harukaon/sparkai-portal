@@ -1,6 +1,7 @@
-import { CopyOutlined, SearchOutlined } from '@ant-design/icons'
-import { App as AntdApp, Alert, Button, Empty, Input, Select, Skeleton } from 'antd'
+import { AppstoreOutlined, CopyOutlined, SearchOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import { App as AntdApp, Alert, Button, Empty, Input, Popover, Segmented, Select, Skeleton } from 'antd'
 import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { ModelIcon } from '@/features/landing/components/ModelIcon'
 import { usePricing } from '@/features/models/api'
@@ -62,6 +63,53 @@ function GroupPrices({ rows, format, t }: { rows: { name: string; ratio?: number
   )
 }
 
+type GroupPriceRow = { name: string; ratio?: number; price: ModelPrice }
+
+/** 用来比较贵贱的一个数：按 token 计费取「输入+输出」，按次取单次价 */
+function priceWeight(price: ModelPrice): number {
+  if (price.kind === 'tokens') return price.input + price.output
+  if (price.kind === 'request') return price.each
+  return Number.POSITIVE_INFINITY
+}
+
+/** 「全部分组」时只显示最便宜的分组，其余分组收进悬浮明细 */
+function CheapestPrice({ rows, format, t }: { rows: GroupPriceRow[]; format: QuotaFormat; t: (zh: string, en: string) => string }) {
+  const priced = rows.filter((row) => Number.isFinite(priceWeight(row.price)))
+  if (!priced.length) return <PriceLabel price={rows[0]?.price ?? { kind: 'unknown' }} format={format} t={t} />
+  const cheapest = priced.reduce((best, row) => (priceWeight(row.price) < priceWeight(best.price) ? row : best))
+  return (
+    <div className={styles.cheapest}>
+      <PriceLabel price={cheapest.price} format={format} t={t} />
+      <span className={styles.cheapestNote}>
+        {rows.length > 1 ? t(`最低价 · ${cheapest.name}`, `Lowest · ${cheapest.name}`) : cheapest.name}
+        {rows.length > 1 ? (
+          <Popover trigger={['hover', 'click']} title={t('各分组价格', 'Price by group')} content={<GroupPrices rows={rows} format={format} t={t} />}>
+            <button type="button" className={styles.moreGroups}>{t(`共 ${rows.length} 个分组`, `${rows.length} groups`)}</button>
+          </Popover>
+        ) : null}
+      </span>
+    </div>
+  )
+}
+
+/** 官方参考价 + 本站便宜多少 */
+function OfficialPrice({ official, ours, rate, t }: { official?: { input?: number | null; output?: number | null }; ours: ModelPrice[]; rate: number; t: (zh: string, en: string) => string }) {
+  if (official?.input == null || official.output == null) return <span className={styles.muted}>{t('暂无参考价', 'No reference price')}</span>
+  const tokens = ours.filter((price) => price.kind === 'tokens')
+  const best = tokens.length ? Math.min(...tokens.map(priceWeight)) : undefined
+  const officialSum = official.input + official.output
+  const saving = best !== undefined && officialSum > 0 ? Math.round((1 - best / officialSum) * 100) : undefined
+  return (
+    <div className={styles.cheapest}>
+      <dl className={styles.priceStack}>
+        <dt>{t('输入', 'Input')}</dt><dd>{formatMoney(official.input * rate)}</dd>
+        <dt>{t('输出', 'Output')}</dt><dd>{formatMoney(official.output * rate)}</dd>
+      </dl>
+      {saving !== undefined && saving >= 1 ? <span className={styles.saving}>{t(`本站便宜 ${saving}%`, `${saving}% cheaper here`)}</span> : null}
+    </div>
+  )
+}
+
 function IntelligenceCell({ score }: { score?: number }) {
   if (score === undefined) return <span className={styles.muted}>—</span>
   return (
@@ -92,6 +140,16 @@ export function ModelsPage() {
   const [groupChoice, setGroupChoice] = useState('all')
   const [vendorChoice, setVendorChoice] = useState('all')
   const [sortBy, setSortBy] = useState<'iq' | 'name'>('iq')
+  // 手机默认卡片，电脑默认表格；用户选过就记住
+  const [view, setViewState] = useState<'table' | 'card'>(() => {
+    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('sparkai.modelsView') : null
+    if (saved === 'table' || saved === 'card') return saved
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches ? 'card' : 'table'
+  })
+  const setView = (next: 'table' | 'card') => {
+    setViewState(next)
+    window.localStorage.setItem('sparkai.modelsView', next)
+  }
   const intelligence = useIntelligence()
   const showAllEndpointTypes = import.meta.env.DEV && typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('previewEndpoints')
@@ -176,6 +234,14 @@ export function ModelsPage() {
           </div>
           {group === 'auto' ? <p className={styles.hint}>{t('自动分组会在调用时选定，最终价格以实际命中的分组为准。', 'Auto groups are chosen at call time; the final price follows the group actually matched.')}</p> : null}
           <div className={styles.officialControl}>
+            <Segmented
+              value={view}
+              onChange={(value) => setView(value as 'table' | 'card')}
+              options={[
+                { value: 'table', icon: <UnorderedListOutlined />, label: t('表格', 'Table') },
+                { value: 'card', icon: <AppstoreOutlined />, label: t('卡片', 'Cards') },
+              ]}
+            />
             <Button type={showOfficial ? 'primary' : 'default'} onClick={() => setShowOfficial((shown) => !shown)} aria-pressed={showOfficial}>
               {showOfficial ? t('收起官方价', 'Hide reference prices') : t('对比官方', 'Compare official prices')}
             </Button>
@@ -187,62 +253,102 @@ export function ModelsPage() {
               <Empty description={data.data.length ? t('没有符合筛选条件的模型，换个条件试试', 'No models match these filters — try different ones') : t('当前还没有开放的模型，请稍后再来查看', 'No models are open yet — check back later')} />
             </div>
           ) : (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead><tr><th scope="col">{t('模型', 'Model')}</th><th scope="col">{t('智力', 'IQ')}</th><th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th>{showOfficial ? <th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th> : null}{showOfficial ? <th scope="col">{t('models.dev 参考价', 'models.dev reference')}<span className={styles.thUnit}>{t('人民币 / 百万 token', 'CNY / M tokens')}</span></th> : <th scope="col">{t('本站价格', 'Our price')}<span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span></th>}</tr></thead>
-                <tbody>
+            (() => {
+              const rowsOf = (model: PricingModel): GroupPriceRow[] => priceGroups
+                .filter((name) => matchesGroup(model, name))
+                .map((name) => ({ name: data.usable_group[name] || name, ratio: data.group_ratio?.[name], price: modelPrice(model, data.group_ratio?.[name]) }))
+              const ourPrice = (model: PricingModel): ReactNode => group === 'all'
+                ? <CheapestPrice format={format} t={t} rows={rowsOf(model)} />
+                : <PriceLabel format={format} t={t} price={modelPrice(model, data.group_ratio?.[group])} />
+              const officialPrice = (model: PricingModel): ReactNode => (
+                <OfficialPrice
+                  t={t}
+                  rate={officialRate}
+                  official={officialPriceFor(model.model_name, officialPricing.data?.models ?? [])?.prices.modelsDev}
+                  ours={group === 'all' ? rowsOf(model).map((row) => row.price) : [modelPrice(model, data.group_ratio?.[group])]}
+                />
+              )
+              const icon = (model: PricingModel) => <ModelIcon icon={model.icon || vendors.find((vendor) => vendor.id === model.vendor_id)?.icon} name={model.model_name} />
+              const copyBtn = (model: PricingModel) => <Button type="text" size="small" aria-label={t(`复制 ${model.model_name} 的调用名称`, `Copy model ID ${model.model_name}`)} icon={<CopyOutlined />} onClick={() => void copyModel(model.model_name)} />
+              const endpointsOf = (model: PricingModel) => <EndpointTags endpoints={showAllEndpointTypes ? model.supported_endpoint_types ?? [] : (model.supported_endpoint_types ?? []).slice(0, 3)} />
+              const ourUnit = <span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span>
+              const refUnit = <span className={styles.thUnit}>{t('元 / 百万 token', 'CNY / M tokens')}</span>
+
+              if (view === 'card') return (
+                <div className={styles.cards}>
                   {visible.map((model) => (
-                    <tr key={model.model_name}>
-                      <td>
-                        <div className={styles.modelCell}>
-                          <ModelIcon icon={model.icon || vendors.find((vendor) => vendor.id === model.vendor_id)?.icon} name={model.model_name} />
-                          <div className={styles.modelText}>
-                            <strong>{model.model_name}</strong>
-                            {model.description ? <span>{model.description}</span> : null}
+                    <article key={model.model_name} className={styles.card}>
+                      <header className={styles.cardHead}>
+                        {icon(model)}
+                        <div className={styles.modelText}>
+                          <strong>{model.model_name}</strong>
+                          <span>{vendorName(model, vendors, t('其他', 'Other'))}</span>
+                        </div>
+                        {copyBtn(model)}
+                      </header>
+                      {model.description ? <p className={styles.cardDesc}>{model.description}</p> : null}
+                      <div className={styles.cardMeta}>
+                        <IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} />
+                        {endpointsOf(model)}
+                      </div>
+                      <div className={styles.cardPrice}>
+                        <div>
+                          <span className={styles.cardLabel}>{t('本站价格', 'Our price')}{ourUnit}</span>
+                          {ourPrice(model)}
+                        </div>
+                        {showOfficial ? (
+                          <div>
+                            <span className={styles.cardLabel}>{t('官方参考', 'Reference')}{refUnit}</span>
+                            {officialPrice(model)}
                           </div>
-                          <Button type="text" size="small" aria-label={t(`复制 ${model.model_name} 的调用名称`, `Copy model ID ${model.model_name}`)} icon={<CopyOutlined />} onClick={() => void copyModel(model.model_name)} />
-                        </div>
-                      </td>
-                      <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
-                      <td>
-                        <div className={styles.meta}>
-                          <span className={styles.vendorName}>{vendorName(model, vendors, t('其他', 'Other'))}</span>
-                          <EndpointTags
-                            endpoints={showAllEndpointTypes
-                              ? model.supported_endpoint_types ?? []
-                              : (model.supported_endpoint_types ?? []).slice(0, 3)}
-                          />
-                        </div>
-                      </td>
-                      <td className={styles.price}>{group === 'all' ? (
-                        <GroupPrices
-                          format={format}
-                          t={t}
-                          rows={priceGroups
-                            .filter((name) => matchesGroup(model, name))
-                            .map((name) => ({ name: data.usable_group[name] || name, ratio: data.group_ratio?.[name], price: modelPrice(model, data.group_ratio?.[name]) }))}
-                        />
-                      ) : (
-                        <PriceLabel format={format} t={t} price={modelPrice(model, data.group_ratio?.[group])} />
-                      )}
-                      </td>
-                      {showOfficial ? <td className={styles.price}>
-                        {(() => {
-                          const entry = officialPriceFor(model.model_name, officialPricing.data?.models ?? [])
-                          const official = entry?.prices.modelsDev
-                          return official?.input != null && official.output != null ? (
-                            <dl className={styles.priceStack}>
-                              <dt>{t('输入', 'Input')}</dt><dd>{formatMoney(official.input * officialRate)}</dd>
-                              <dt>{t('输出', 'Output')}</dt><dd>{formatMoney(official.output * officialRate)}</dd>
-                            </dl>
-                          ) : <span className={styles.muted}>{t('暂无参考价', 'No reference price')}</span>
-                        })()}
-                      </td> : null}
-                    </tr>
+                        ) : null}
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              )
+
+              return (
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th scope="col">{t('模型', 'Model')}</th>
+                        <th scope="col">{t('智力', 'IQ')}</th>
+                        <th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th>
+                        <th scope="col">{t('本站价格', 'Our price')}{ourUnit}</th>
+                        {showOfficial ? <th scope="col">{t('models.dev 参考价', 'models.dev reference')}{refUnit}</th> : null}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visible.map((model) => (
+                        <tr key={model.model_name}>
+                          <td>
+                            <div className={styles.modelCell}>
+                              {icon(model)}
+                              <div className={styles.modelText}>
+                                <strong>{model.model_name}</strong>
+                                {model.description ? <span>{model.description}</span> : null}
+                              </div>
+                              {copyBtn(model)}
+                            </div>
+                          </td>
+                          <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
+                          <td>
+                            <div className={styles.meta}>
+                              <span className={styles.vendorName}>{vendorName(model, vendors, t('其他', 'Other'))}</span>
+                              {endpointsOf(model)}
+                            </div>
+                          </td>
+                          <td className={styles.price}>{ourPrice(model)}</td>
+                          {showOfficial ? <td className={styles.price}>{officialPrice(model)}</td> : null}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })()
           )}
           <p className={styles.footnote}>{t('智力为本站综合评估分（0–100），仅供选型参考。本站价格按当前语言显示；models.dev 参考价按后台汇率换算为人民币。实际价格以请求结算为准。', 'IQ scores are our own 0–100 rating for reference only. Our prices follow the selected language; models.dev reference prices are converted to CNY using the current exchange rate. Actual billing follows request settlement.')}</p>
         </>
