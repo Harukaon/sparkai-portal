@@ -28,6 +28,9 @@ import { useT } from '@/shared/i18n'
 
 import styles from './WalletPage.module.css'
 
+/** 本站自己的最低充值额（元），只在前台限制；Stripe 那边不设下限 */
+const MIN_TOPUP_YUAN = 10
+
 const STATUS: Record<string, { label: [string, string]; color?: string }> = {
   success: { label: ['已到账', 'Paid'] as [string, string], color: 'success' },
   pending: { label: ['待支付', 'Pending'] as [string, string], color: 'processing' },
@@ -62,7 +65,7 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
   const [paying, setPaying] = useState<string | null>(null)
   const method = methods.find((item) => item.type === methodChoice) ?? methods[0]
   const debouncedAmount = useDebounced(amount, 400)
-  const valid = Boolean(method && debouncedAmount && debouncedAmount >= method.min)
+  const valid = Boolean(method && debouncedAmount && debouncedAmount >= MIN_TOPUP_YUAN)
 
   const quote = useQuery({
     queryKey: ['topup-quote', method?.type, debouncedAmount],
@@ -74,8 +77,8 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
 
   async function pay() {
     if (!method || !amount) return
-    if (amount < method.min) {
-      message.error(t(`${method.name} 最少充值 ${amountLabel(method.min, format, usdRate)}`, `${method.name} minimum is ${amountLabel(method.min, format, usdRate)}`))
+    if (amount < MIN_TOPUP_YUAN) {
+      message.error(t(`最少充值 ¥${MIN_TOPUP_YUAN}`, `Minimum top-up is ¥${MIN_TOPUP_YUAN}`))
       return
     }
     setPaying(method.type)
@@ -134,11 +137,7 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
               />
               <Space.Addon>{t('元', 'CNY')}</Space.Addon>
             </Space.Compact>
-            {method && amount ? (
-              <span className={styles.hint}>
-                {t(`到账 ${amountLabel(amount, format, usdRate)} 余额；${method.name} 最少 ¥${method.min}`, `Credits ${amountLabel(amount, format, usdRate)}. ${method.name} minimum: ¥${method.min}.`)}
-              </span>
-            ) : null}
+            <span className={styles.hint}>{t(`最少充值 ¥${MIN_TOPUP_YUAN}`, `Minimum top-up: ¥${MIN_TOPUP_YUAN}`)}</span>
           </div>
 
           <div className={styles.field}>
