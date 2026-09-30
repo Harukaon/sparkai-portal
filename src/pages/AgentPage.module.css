@@ -36,6 +36,14 @@
 .heroCopy p { max-width: 430px; margin-top: 20px; color: var(--color-ink-muted); font-size: var(--text-base); line-height: 1.9; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 30px; }
 .coming { display: inline-flex; align-items: center; gap: 8px; padding: 11px 17px; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; }
+.download { display: inline-flex; align-items: center; gap: 9px; padding: 12px 20px; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; }
+.download:hover { opacity: .88; color: var(--color-ink-inverse); }
+.download small { color: inherit; font-weight: 400; opacity: .6; }
+.otherList { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding: 0; list-style: none; }
+.otherList a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-ink); font-size: var(--text-xs); }
+.otherList a:hover { border-color: var(--color-line-strong); }
+.otherList small { color: var(--color-ink-subtle); }
+.installNote { max-width: 460px; margin-top: 16px; color: var(--color-ink-subtle); font-size: 12px; line-height: 1.7; }
 .textLink { display: inline-flex; align-items: center; gap: 8px; color: var(--color-ink-muted); font-size: var(--text-sm); }
 .textLink:hover { color: var(--color-ink); }
 
