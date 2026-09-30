@@ -35,11 +35,11 @@ const STATUS: Record<string, { label: [string, string]; color?: string }> = {
 }
 
 /**
- * New API 的充值数量以「份」为单位，1 份 = 1 美元额度（后台按此计价和到账），
- * 页面上统一换算成人民币显示。
+ * 充值以「份」下单，1 份 = ¥1（Stripe 价格按人民币 ¥1/份，后台充值倍率保证 1 份到账 ¥1 余额）。
+ * 页面上用户直接填人民币金额，金额就是份数。
  */
-function amountLabel(amount: number, format: QuotaFormat): string {
-  return formatQuota(amount * format.perUnit, format)
+function amountLabel(yuan: number, format: QuotaFormat, usdRate: number): string {
+  return formatQuota((yuan / usdRate) * format.perUnit, format)
 }
 
 function useDebounced<T>(value: T, delay: number): T {
@@ -58,10 +58,7 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
   const presets = amountOptions(info)
   const products = creemProducts(info)
   const [methodChoice, setMethodChoice] = useState('')
-  // 每 1 份后台单位的金额（人民币或美元）；用户填的是金额，下单时折成整数份
-  const unit = format.rate
-  const [money, setMoney] = useState<number | null>(presets[0] ? Number((presets[0] * unit).toFixed(2)) : null)
-  const amount = money && money > 0 ? Math.max(1, Math.round(money / unit)) : null
+  const [amount, setAmount] = useState<number | null>(presets[0] ?? null)
   const [paying, setPaying] = useState<string | null>(null)
   const method = methods.find((item) => item.type === methodChoice) ?? methods[0]
   const debouncedAmount = useDebounced(amount, 400)
@@ -78,7 +75,7 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
   async function pay() {
     if (!method || !amount) return
     if (amount < method.min) {
-      message.error(t(`${method.name} 最少充值 ${amountLabel(method.min, format)}`, `${method.name} minimum is ${amountLabel(method.min, format)}`))
+      message.error(t(`${method.name} 最少充值 ${amountLabel(method.min, format, usdRate)}`, `${method.name} minimum is ${amountLabel(method.min, format, usdRate)}`))
       return
     }
     setPaying(method.type)
@@ -116,9 +113,9 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
                       type="button"
                       className={`${styles.preset} ${amount === value ? styles.presetActive : ''}`}
                       aria-pressed={amount === value}
-                      onClick={() => setMoney(Number((value * unit).toFixed(2)))}
+                      onClick={() => setAmount(value)}
                     >
-                      <strong>{amountLabel(value, format)}</strong>
+                      <strong>{amountLabel(value, format, usdRate)}</strong>
                       {rate < 1 ? <span>{t(`${Math.round(rate * 100) / 10} 折`, `${Math.round(rate * 1000) / 100}% off`)}</span> : null}
                     </button>
                   )
@@ -127,19 +124,19 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
             ) : null}
             <Space.Compact className={styles.amountInput}>
               <InputNumber
-                min={0}
+                min={1}
                 precision={0}
-                value={money}
-                onChange={(value) => setMoney(typeof value === 'number' ? value : null)}
+                value={amount}
+                onChange={(value) => setAmount(typeof value === 'number' && value > 0 ? value : null)}
                 placeholder={t('自定义金额', 'Custom amount')}
                 aria-label={t('自定义充值金额', 'Custom top-up amount')}
                 style={{ width: '100%' }}
               />
-              <Space.Addon>{format.symbol}</Space.Addon>
+              <Space.Addon>{t('元', 'CNY')}</Space.Addon>
             </Space.Compact>
             {method && amount ? (
               <span className={styles.hint}>
-                {t(`实际充值 ${amountLabel(amount, format)}，${method.name} 最少 ${amountLabel(method.min, format)}`, `You will top up ${amountLabel(amount, format)} (rounded to the nearest step). ${method.name} minimum: ${amountLabel(method.min, format)}.`)}
+                {t(`到账 ${amountLabel(amount, format, usdRate)} 余额；${method.name} 最少 ¥${method.min}`, `Credits ${amountLabel(amount, format, usdRate)}. ${method.name} minimum: ¥${method.min}.`)}
               </span>
             ) : null}
           </div>
@@ -284,13 +281,14 @@ export function WalletPage() {
       title: t('到账额度', 'Credit'),
       dataIndex: 'amount',
       align: 'right',
-      render: (value: number) => <span className={styles.mono}>{formatQuota(value * format.perUnit, format)}</span>,
+      render: (value: number) => <span className={styles.mono}>{amountLabel(value, format, usdRate)}</span>,
     },
     {
       title: t('实付', 'Paid'),
       dataIndex: 'money',
       align: 'right',
-      render: (value: number, record) => <span className={styles.mono}>{moneyText(value || 0, record.payment_method, format, usdRate)}</span>,
+      // Stripe 订单里 money 记的是到账美元额度，实付人民币就是份数（1 份 = ¥1）
+      render: (value: number, record) => <span className={styles.mono}>{moneyText(record.payment_method === 'stripe' ? record.amount : value || 0, record.payment_method, format, usdRate)}</span>,
     },
     {
       title: t('状态', 'Status'),

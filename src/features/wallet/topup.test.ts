@@ -62,7 +62,8 @@ describe('实付金额显示', () => {
     expect(moneyText(73, 'alipay', en, 7.3)).toBe('$10.00 (charged ¥73.00)')
   })
 
-  it('Stripe 等外币网关只显示数字', () => {
-    expect(moneyText(9.9, 'stripe', en, 7.3)).toBe('9.90')
+  it('Waffo 等外币网关只显示数字；Stripe 按人民币', () => {
+    expect(moneyText(9.9, 'waffo', en, 7.3)).toBe('9.90')
+    expect(moneyText(10, 'stripe', zh, 7.3)).toBe('¥10.00')
   })
 })
