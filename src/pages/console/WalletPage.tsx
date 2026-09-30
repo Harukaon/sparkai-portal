@@ -58,7 +58,10 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
   const presets = amountOptions(info)
   const products = creemProducts(info)
   const [methodChoice, setMethodChoice] = useState('')
-  const [amount, setAmount] = useState<number | null>(presets[0] ?? null)
+  // 每 1 份后台单位的金额（人民币或美元）；用户填的是金额，下单时折成整数份
+  const unit = format.rate
+  const [money, setMoney] = useState<number | null>(presets[0] ? Number((presets[0] * unit).toFixed(2)) : null)
+  const amount = money && money > 0 ? Math.max(1, Math.round(money / unit)) : null
   const [paying, setPaying] = useState<string | null>(null)
   const method = methods.find((item) => item.type === methodChoice) ?? methods[0]
   const debouncedAmount = useDebounced(amount, 400)
@@ -113,7 +116,7 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
                       type="button"
                       className={`${styles.preset} ${amount === value ? styles.presetActive : ''}`}
                       aria-pressed={amount === value}
-                      onClick={() => setAmount(value)}
+                      onClick={() => setMoney(Number((value * unit).toFixed(2)))}
                     >
                       <strong>{amountLabel(value, format)}</strong>
                       {rate < 1 ? <span>{t(`${Math.round(rate * 100) / 10} 折`, `${Math.round(rate * 1000) / 100}% off`)}</span> : null}
@@ -124,17 +127,21 @@ function OnlineTopup({ info, format, usdRate }: { info: TopupInfo; format: Quota
             ) : null}
             <Space.Compact className={styles.amountInput}>
               <InputNumber
-                min={1}
+                min={0}
                 precision={0}
-                value={amount}
-                onChange={(value) => setAmount(typeof value === 'number' ? value : null)}
-                placeholder={t('自定义份数', 'Custom packs')}
-                aria-label={t('自定义充值数量', 'Custom number of packs')}
+                value={money}
+                onChange={(value) => setMoney(typeof value === 'number' ? value : null)}
+                placeholder={t('自定义金额', 'Custom amount')}
+                aria-label={t('自定义充值金额', 'Custom top-up amount')}
                 style={{ width: '100%' }}
               />
-              <Space.Addon>{t('份', 'packs')} × {amountLabel(1, format)}</Space.Addon>
+              <Space.Addon>{format.symbol}</Space.Addon>
             </Space.Compact>
-            {method ? <span className={styles.hint}>{t(`自定义时按份填写，1 份到账 ${amountLabel(1, format)} 额度；${method.name} 最少 ${method.min} 份`, `Enter a number of packs; each pack credits ${amountLabel(1, format)}. ${method.name} minimum: ${method.min} packs.`)}</span> : null}
+            {method && amount ? (
+              <span className={styles.hint}>
+                {t(`实际充值 ${amountLabel(amount, format)}，${method.name} 最少 ${amountLabel(method.min, format)}`, `You will top up ${amountLabel(amount, format)} (rounded to the nearest step). ${method.name} minimum: ${amountLabel(method.min, format)}.`)}
+              </span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
