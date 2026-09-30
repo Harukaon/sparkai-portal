@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
+import { LegacyRedirect } from '@/app/LegacyRedirect'
 import { ConsoleLayout } from '@/app/layout/ConsoleLayout'
 import { SiteLayout } from '@/app/layout/SiteLayout'
 import { RequireAdmin, RequireAuth } from '@/features/auth/components/RequireAuth'
@@ -50,6 +51,8 @@ export const router = createBrowserRouter([
           { path: 'admin/tickets/:id', element: <RequireAdmin><TicketDetailPage admin /></RequireAdmin> },
         ],
       },
+      { path: 'wallet', element: <LegacyRedirect to="/console/wallet" /> },
+      { path: 'usage-logs', element: <LegacyRedirect to="/console/logs" /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
