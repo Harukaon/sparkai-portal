@@ -177,11 +177,11 @@ export function ModelsPage() {
   const [groupChoice, setGroupChoice] = useState('all')
   const [vendorChoice, setVendorChoice] = useState('all')
   const [sortBy, setSortBy] = useState<'iq' | 'name'>('iq')
-  // 手机默认卡片，电脑默认表格；用户选过就记住
+  // 默认展示卡片；用户选过的视图仍记住
   const [view, setViewState] = useState<'table' | 'card'>(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem('sparkai.modelsView') : null
     if (saved === 'table' || saved === 'card') return saved
-    return typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches ? 'card' : 'table'
+    return 'card'
   })
   const setView = (next: 'table' | 'card') => {
     setViewState(next)
