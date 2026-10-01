@@ -4,6 +4,10 @@
     "deepseek-v4.1-flash": {
       "inputCny": 1,
       "outputCny": 4
+    },
+    "glm-5.3-flash": {
+      "inputCny": 0.8,
+      "outputCny": 2.8
     }
   }
 }
