@@ -138,18 +138,3 @@ kbd {
     padding-inline: var(--space-4);
   }
 }
-
-/* 尊重系统的「减少动态效果」设置 */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
