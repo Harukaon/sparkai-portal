@@ -158,7 +158,7 @@ export function KeysPage() {
     {
       title: t('分组', 'Group'),
       dataIndex: 'group',
-      render: (group: string) => group || <span className={styles.muted}>{t('跟随账号', 'Follows account')}</span>,
+      render: (group: string) => group || <span className={styles.muted}>{t('未指定，请编辑', 'Not set — edit')}</span>,
     },
     {
       title: t('有效期', 'Expiry'),

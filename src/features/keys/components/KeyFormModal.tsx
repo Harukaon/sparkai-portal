@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Alert, DatePicker, Form, Input, InputNumber, Modal, Radio, Select, Switch } from 'antd'
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useAuthStore } from '@/features/auth/auth-store'
 import type { QuotaFormat } from '@/features/console/quota'
@@ -35,6 +35,13 @@ export function KeyFormModal({ open, initial, format, onCancel, onSubmit }: Prop
 
   const groups = useQuery({ queryKey: ['usable-groups', userId], queryFn: fetchUsableGroups, enabled: open })
   const models = useQuery({ queryKey: ['user-models', userId], queryFn: fetchUserModels, enabled: open })
+
+  // 分组必须手动选一个当前可用的；旧密钥里留空或已不可用的分组，打开时清掉，逼着重新选
+  useEffect(() => {
+    if (!open || !groups.data) return
+    const current = form.getFieldValue('group') as string | undefined
+    if (current && !(current in groups.data)) form.setFieldValue('group', undefined)
+  }, [open, groups.data, form])
 
   async function handleOk() {
     let values: KeyFormValues
@@ -75,7 +82,7 @@ export function KeyFormModal({ open, initial, format, onCancel, onSubmit }: Prop
         requiredMark={false}
         className={styles.form}
         preserve={false}
-        initialValues={initial ?? EMPTY_KEY_FORM}
+        initialValues={{ ...(initial ?? EMPTY_KEY_FORM), group: initial?.group || undefined } as Partial<KeyFormValues>}
       >
         <Form.Item
           name="name"
@@ -131,16 +138,19 @@ export function KeyFormModal({ open, initial, format, onCancel, onSubmit }: Prop
           </Form.Item>
         ) : null}
 
-        <Form.Item name="group" label={t('计费分组', 'Billing group')} extra={t('决定这个密钥按哪个分组的价格计费。', 'Which price group this key is billed at.')}>
+        <Form.Item
+          name="group"
+          label={t('计费分组', 'Billing group')}
+          extra={t('决定这个密钥走哪个分组的渠道、按哪个分组的价格计费。', 'Which group of channels this key uses, and which group price it is billed at.')}
+          rules={[{ required: true, message: t('请选择计费分组', 'Choose a billing group') }]}
+        >
           <Select
             loading={groups.isPending}
-            options={[
-              { value: '', label: t('跟随账号分组', 'Follow the account group') },
-              ...Object.entries(groups.data ?? {}).map(([name, group]) => ({
-                value: name,
-                label: `${name}${group.desc ? ` · ${group.desc}` : ''}${typeof group.ratio === 'number' ? ` · ${t(`${group.ratio} 倍`, `×${group.ratio}`)}` : ''}`,
-              })),
-            ]}
+            placeholder={t('请选择计费分组', 'Choose a billing group')}
+            options={Object.entries(groups.data ?? {}).map(([name, group]) => ({
+              value: name,
+              label: `${name}${group.desc ? ` · ${group.desc}` : ''}${typeof group.ratio === 'number' ? ` · ${t(`${group.ratio} 倍`, `×${group.ratio}`)}` : ''}`,
+            }))}
           />
         </Form.Item>
 
