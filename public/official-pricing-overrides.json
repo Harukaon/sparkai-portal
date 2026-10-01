@@ -8,6 +8,10 @@
     "glm-5.3-flash": {
       "inputCny": 0.8,
       "outputCny": 2.8
+    },
+    "minimax-m3": {
+      "inputCny": 2.1,
+      "outputCny": 8.4
     }
   }
 }
