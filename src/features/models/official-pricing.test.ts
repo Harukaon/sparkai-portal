@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { officialPriceFor } from './official-pricing'
+import { officialPriceFor, officialPriceOf } from './official-pricing'
 
 const entries = [
   { id: 'deepseek-flash', name: 'DeepSeek V4.1 Flash', vendor: 'DeepSeek', prices: { modelsDev: { input: 0.15, output: 0.6 } } },
@@ -19,5 +19,15 @@ describe('officialPriceFor', () => {
 
   it('matches exact display names', () => {
     expect(officialPriceFor('DeepSeek V4.1 Flash', entries)?.id).toBe('deepseek-flash')
+  })
+
+  it('keeps a manual CNY price alongside the automatic USD reference price', () => {
+    const price = officialPriceOf('deepseek-v4.1-flash', {
+      updatedAt: '2026-10-01',
+      unit: 'USD / 1M tokens',
+      models: entries,
+      overrides: { 'deepseek-v4.1-flash': { inputCny: 1, outputCny: 4 } },
+    })
+    expect(price).toEqual({ input: 0.15, output: 0.6, inputCny: 1, outputCny: 4 })
   })
 })

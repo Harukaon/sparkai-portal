@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 export interface OfficialModelPrice {
   input?: number
   output?: number
+  inputCny?: number
+  outputCny?: number
 }
 
 export interface OfficialPriceEntry {
@@ -18,7 +20,7 @@ interface OfficialPricingFile {
   models: OfficialPriceEntry[]
 }
 
-/** 手工维护表：键是本站模型调用名称，优先级高于自动抓取的参考价 */
+/** 手工维护表：键是本站模型调用名称；美元和人民币字段分别覆盖对应币种 */
 interface OfficialPricingOverrides {
   models: Record<string, OfficialModelPrice>
 }
@@ -39,12 +41,13 @@ async function fetchOfficialPricing(): Promise<OfficialPricing> {
   return { ...file, overrides }
 }
 
-/** 取某个模型的官方价：先查手工表（名称完全一致），再退回自动抓取的参考价 */
+/** 取某个模型的官方价：手工表按币种覆盖自动抓取的参考价 */
 export function officialPriceOf(modelName: string, pricing?: OfficialPricing): OfficialModelPrice | undefined {
   if (!pricing) return undefined
+  const automatic = officialPriceFor(modelName, pricing.models)?.prices.modelsDev
   const manual = pricing.overrides[modelName]
-  if (manual?.input != null && manual.output != null) return manual
-  return officialPriceFor(modelName, pricing.models)?.prices.modelsDev
+  if (!automatic && !manual) return undefined
+  return { ...automatic, ...manual }
 }
 
 export function useOfficialPricing(enabled: boolean) {

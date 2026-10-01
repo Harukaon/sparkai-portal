@@ -1,5 +1,9 @@
 {
-  "_说明": "手工维护的官方价（优先级高于 official-pricing.json 里自动抓取的参考价）。键写本站模型调用名称，单位 美元 / 百万 token。删掉某条即回退到自动参考价。",
-  "unit": "USD / 1M tokens",
-  "models": {}
+  "_说明": "手工覆盖官方价格。input/output 为美元，inputCny/outputCny 为人民币，单位均为每百万 token；中文界面优先用人民币字段。删掉某条即回退到自动参考价。",
+  "models": {
+    "deepseek-v4.1-flash": {
+      "inputCny": 1,
+      "outputCny": 4
+    }
+  }
 }

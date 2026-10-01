@@ -131,17 +131,19 @@ function CheapestPrice({ rows, format, t }: { rows: GroupPriceRow[]; format: Quo
 }
 
 /** 官方参考价 + 本站便宜多少 */
-function OfficialPrice({ official, ours, rate, t }: { official?: { input?: number | null; output?: number | null }; ours: ModelPrice[]; rate: number; t: (zh: string, en: string) => string }) {
+function OfficialPrice({ official, ours, rate, format, t }: { official?: { input?: number | null; output?: number | null; inputCny?: number | null; outputCny?: number | null }; ours: ModelPrice[]; rate: number; format: QuotaFormat; t: (zh: string, en: string) => string }) {
   if (official?.input == null || official.output == null) return <span className={styles.muted}>{t('暂无官方价', 'No official price')}</span>
   const tokens = ours.filter((price) => price.kind === 'tokens')
   const best = tokens.length ? Math.min(...tokens.map(priceWeight)) : undefined
   const officialSum = official.input + official.output
   const saving = best !== undefined && officialSum > 0 ? Math.round((1 - best / officialSum) * 100) : undefined
+  const inputDisplay = format.unit === 'CNY' && official.inputCny != null ? official.inputCny : official.input * rate
+  const outputDisplay = format.unit === 'CNY' && official.outputCny != null ? official.outputCny : official.output * rate
   return (
     <div className={styles.cheapest}>
       <dl className={styles.priceStack}>
-        <dt>{t('输入', 'Input')}</dt><dd>{formatMoney(official.input * rate)}</dd>
-        <dt>{t('输出', 'Output')}</dt><dd>{formatMoney(official.output * rate)}</dd>
+        <dt>{t('输入', 'Input')}</dt><dd>{formatMoney(inputDisplay)}</dd>
+        <dt>{t('输出', 'Output')}</dt><dd>{formatMoney(outputDisplay)}</dd>
       </dl>
       {saving !== undefined && saving >= 1 ? <span className={styles.saving}>{t(`本站便宜 ${saving}%`, `${saving}% cheaper here`)}</span> : null}
     </div>
@@ -304,6 +306,7 @@ export function ModelsPage() {
                 <OfficialPrice
                   t={t}
                   rate={officialRate}
+                  format={format}
                   official={officialPriceOf(model.model_name, officialPricing.data)}
                   ours={group === 'all' ? rowsOf(model).map((row) => row.price) : [modelPrice(model, data.group_ratio?.[group])]}
                 />
