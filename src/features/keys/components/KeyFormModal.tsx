@@ -14,6 +14,9 @@ import { useT } from '@/shared/i18n'
 
 import styles from './KeyFormModal.module.css'
 
+/** 新建密钥默认的计费分组：自动按模型路由到对应分组 */
+const DEFAULT_NEW_KEY_GROUP = 'auto'
+
 interface Props {
   open: boolean
   /** 传入即为编辑 */
@@ -33,10 +36,19 @@ export function KeyFormModal({ open, initial, format, onCancel, onSubmit }: Prop
   const expiryMode = Form.useWatch('expiryMode', form)
   const limitModels = Form.useWatch('limitModels', form)
 
-  const groups = useQuery({ queryKey: ['usable-groups', userId], queryFn: fetchUsableGroups, enabled: open })
+  const groups = useQuery({
+    queryKey: ['usable-groups', userId],
+    queryFn: async () => {
+      const all = await fetchUsableGroups()
+      // 后端会把用户自己的账号分组（default）固定补进可选列表并标成「用户分组」，
+      // 它不是站长开放的计费分组，也没有渠道，不给用户选
+      return Object.fromEntries(Object.entries(all).filter(([, group]) => group.desc !== '用户分组'))
+    },
+    enabled: open,
+  })
   const models = useQuery({ queryKey: ['user-models', userId], queryFn: fetchUserModels, enabled: open })
 
-  // 分组必须手动选一个当前可用的；旧密钥里留空或已不可用的分组，打开时清掉，逼着重新选
+  // 新建密钥默认选「自动选择」；旧密钥里留空或已不可用的分组（含 default），打开时清掉，逼着重新选
   useEffect(() => {
     if (!open || !groups.data) return
     const current = form.getFieldValue('group') as string | undefined
@@ -82,7 +94,7 @@ export function KeyFormModal({ open, initial, format, onCancel, onSubmit }: Prop
         requiredMark={false}
         className={styles.form}
         preserve={false}
-        initialValues={{ ...(initial ?? EMPTY_KEY_FORM), group: initial?.group || undefined } as Partial<KeyFormValues>}
+        initialValues={{ ...(initial ?? EMPTY_KEY_FORM), group: initial ? initial.group || undefined : DEFAULT_NEW_KEY_GROUP } as Partial<KeyFormValues>}
       >
         <Form.Item
           name="name"
