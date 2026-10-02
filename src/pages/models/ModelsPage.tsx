@@ -165,11 +165,18 @@ function OfficialPrice({ official, ours, rate, format, t }: { official?: { input
   )
 }
 
-function IntelligenceCell({ score }: { score?: number }) {
-  if (score === undefined) return <span className={styles.muted}>—</span>
+function IntelligenceCell({ score, label }: { score?: number; label?: string }) {
+  // 卡片里没有表头，label 用来标明这是「智力」分；表格有表头，不传
+  const caption = label ? <small className={styles.iqLabel}>{label}</small> : null
+  if (score === undefined) {
+    return <span className={styles.iqEmpty}>{caption}<span className={styles.muted}>—</span></span>
+  }
   return (
-    <div className={styles.iq} aria-label={`IQ ${score}`}>
-      <strong>{score}</strong>
+    <div className={styles.iq} aria-label={`${label ?? 'IQ'} ${score}`}>
+      <span className={styles.iqHead}>
+        {caption}
+        <strong>{score}</strong>
+      </span>
       <span className={styles.iqTrack} aria-hidden="true">
         <span className={styles.iqBar} style={{ width: `${score}%` }} />
       </span>
@@ -346,7 +353,7 @@ export function ModelsPage() {
                       </header>
                       {model.description ? <p className={styles.cardDesc}>{model.description}</p> : null}
                       <div className={styles.cardMeta}>
-                        <IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} />
+                        <IntelligenceCell label={t('智力', 'IQ')} score={intelligenceOf(intelligence.data, model.model_name)} />
                         {endpointsOf(model)}
                       </div>
                       <div className={styles.cardPrice}>

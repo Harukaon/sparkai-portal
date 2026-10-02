@@ -247,6 +247,17 @@
   width: 88px;
 }
 
+.iqHead, .iqEmpty {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.iqLabel {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
 .iq strong {
   font-family: var(--font-mono);
   font-size: var(--text-base);
