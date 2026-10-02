@@ -219,7 +219,8 @@ export function ModelsPage() {
     new URLSearchParams(window.location.search).has('previewEndpoints')
 
   const data = pricing.data
-  const groups = Object.entries(data?.usable_group ?? {})
+  // 后端会把用户自己的账号分组（default）固定补进可选列表并标成「用户分组」，它不是开放的计费分组，不展示
+  const groups = Object.entries(data?.usable_group ?? {}).filter(([, desc]) => desc !== '用户分组')
   // 默认「全部分组」不筛选；选了具体分组才按分组过滤、按该分组倍率算价
   const group = groups.some(([name]) => name === groupChoice) ? groupChoice : 'all'
   const priceGroups = groups.map(([name]) => name).filter((name) => name !== 'auto')
