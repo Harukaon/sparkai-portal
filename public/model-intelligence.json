@@ -1,6 +1,14 @@
 {
   "_说明": "模型广场「智力」分。键 = 模型调用名称（和 New API 模型广场里显示的完全一致，不区分大小写），值 = 0 到 100 的整数。没写的模型显示「—」并排在最后。改完保存即可，用户刷新页面就能看到，不需要重新打包。",
+  "_来源": "Artificial Analysis Intelligence Index（artificialanalysis.ai/leaderboards/models），2026-10-02 取数；每个模型取榜单上它最高思考档位（max）的分数。榜单上没有的模型不填。",
   "scores": {
-    "deepseek/deepseek-v4.1-flash": 72
+    "claude-opus-5-5": 58,
+    "claude-sonnet-5-5": 56,
+    "gpt-6-astra": 53,
+    "gpt-6.1-sol": 52,
+    "glm-5.3-flash": 42,
+    "deepseek-v4.1-flash": 39,
+    "gpt-6-luna": 37,
+    "minimax-m3": 29
   }
 }
