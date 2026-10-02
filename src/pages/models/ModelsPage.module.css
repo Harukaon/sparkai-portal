@@ -209,6 +209,17 @@
 }
 
 .muted { color: var(--color-ink-muted); }
+.tierDefault { display: grid; gap: var(--space-2); }
+.dynamicNote { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 0.8125em; }
+.helpBtn {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.helpBtn:hover, .helpBtn:focus-visible { color: var(--color-ink); }
 
 .empty {
   padding: var(--space-16) var(--space-4);

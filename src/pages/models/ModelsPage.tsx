@@ -1,4 +1,4 @@
-import { AppstoreOutlined, CopyOutlined, SearchOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, CopyOutlined, QuestionCircleOutlined, SearchOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import { App as AntdApp, Alert, Button, Empty, Input, Popover, Segmented, Select, Skeleton } from 'antd'
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -49,7 +49,9 @@ function PriceLabel({ price, format, t }: { price: ModelPrice; format: QuotaForm
   if (price.kind === 'unknown') return <span className={styles.muted}>{t('按实际选择的分组计费', 'Billed by the selected group')}</span>
   if (price.kind === 'request') return <span><strong>{formatUsdAsCny(price.each, format)}</strong><small> {t('/ 次', '/ call')}</small></span>
   if (price.kind === 'tiers') {
-    return (
+    // 分档（动态）计费：默认显示第一档（起步档）的输入输出价，各档明细放进问号里
+    const first = price.tiers[0]
+    const detail = (
       <div className={styles.tiers}>
         {price.tiers.map((tier, index) => (
           <div key={tier.name}>
@@ -57,6 +59,19 @@ function PriceLabel({ price, format, t }: { price: ModelPrice; format: QuotaForm
             <TokenRows price={tier} format={format} t={t} />
           </div>
         ))}
+      </div>
+    )
+    return (
+      <div className={styles.tierDefault}>
+        {first ? <TokenRows price={first} format={format} t={t} /> : null}
+        <span className={`${styles.muted} ${styles.dynamicNote}`}>
+          {t('动态计费', 'Dynamic billing')}
+          <Popover trigger={['hover', 'click']} title={t('计费明细', 'Pricing details')} content={detail}>
+            <button type="button" className={styles.helpBtn} aria-label={t('查看计费明细', 'View pricing details')}>
+              <QuestionCircleOutlined />
+            </button>
+          </Popover>
+        </span>
       </div>
     )
   }
@@ -133,7 +148,7 @@ function CheapestPrice({ rows, format, t }: { rows: GroupPriceRow[]; format: Quo
 /** 官方参考价 + 本站便宜多少 */
 function OfficialPrice({ official, ours, rate, format, t }: { official?: { input?: number | null; output?: number | null; inputCny?: number | null; outputCny?: number | null }; ours: ModelPrice[]; rate: number; format: QuotaFormat; t: (zh: string, en: string) => string }) {
   if (official?.input == null || official.output == null) return <span className={styles.muted}>{t('暂无官方价', 'No official price')}</span>
-  const tokens = ours.filter((price) => price.kind === 'tokens')
+  const tokens = ours.filter((price) => price.kind === 'tokens' || price.kind === 'tiers')
   const best = tokens.length ? Math.min(...tokens.map(priceWeight)) : undefined
   const officialSum = official.input + official.output
   const saving = best !== undefined && officialSum > 0 ? Math.round((1 - best / officialSum) * 100) : undefined
