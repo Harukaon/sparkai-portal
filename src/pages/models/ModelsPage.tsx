@@ -278,7 +278,7 @@ export function ModelsPage() {
               options={[
                 { label: t('全部分组', 'All groups'), value: 'all' },
                 ...groups.map(([name, desc]) => ({
-                  label: `${desc || name}${typeof data.group_ratio?.[name] === 'number' ? ` · ${t(`${data.group_ratio[name]} 倍`, `×${data.group_ratio[name]}`)}` : ''}`,
+                  label: `${desc || name}${name !== 'auto' && typeof data.group_ratio?.[name] === 'number' ? ` · ${t(`${data.group_ratio[name]} 倍`, `×${data.group_ratio[name]}`)}` : ''}`,
                   value: name,
                 })),
               ]}
