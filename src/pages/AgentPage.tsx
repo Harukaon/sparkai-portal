@@ -1,4 +1,4 @@
-import { AppleOutlined, ArrowRightOutlined, CheckOutlined, ClockCircleOutlined, DownloadOutlined, WindowsOutlined } from '@ant-design/icons'
+import { AppleOutlined, ArrowRightOutlined, CheckOutlined, ClockCircleOutlined, DownloadOutlined, LoadingOutlined, WindowsOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 
 import { PLATFORM_LABEL, detectPlatform, formatFileSize, useDesktopRelease } from '@/features/agent/release'
@@ -21,7 +21,10 @@ const PLATFORM_ICON: Record<DesktopPlatform, typeof AppleOutlined> = {
 
 export function AgentPage() {
   const t = useT()
-  const release = useDesktopRelease().data ?? null
+  const query = useDesktopRelease()
+  const release = query.data ?? null
+  // 还在读版本信息时不能先显示「敬请期待」，否则用户会误以为没上线；读完确认没有版本才显示
+  const loading = query.isPending
   const mine = release ? detectPlatform(navigator.userAgent) : null
   const main = release?.files.find((file) => file.platform === mine)
   const others = release?.files.filter((file) => file !== main) ?? []
@@ -31,9 +34,9 @@ export function AgentPage() {
       <section className={styles.hero}>
         <div className={styles.glow} aria-hidden="true" />
         <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}><span className={styles.pulse} />{release ? t(`公测版 · ${release.version.replace('0.1.0-', '')}`, `Beta · ${release.version.replace('0.1.0-', '')}`) : t('即将发布', 'Coming soon')}</span>
+          <span className={styles.eyebrow}><span className={styles.pulse} />{release ? t(`公测版 · ${release.version.replace('0.1.0-', '')}`, `Beta · ${release.version.replace('0.1.0-', '')}`) : loading ? t('公测中', 'Public beta') : t('即将发布', 'Coming soon')}</span>
           <h1>{t('让 AI 不止于回答', 'AI that goes beyond answers')}</h1>
-          <p>{release ? t('自研 Agent，帮你浏览网页、处理文档，把想法一步步变成结果。现已开放公测，下载即可使用。', 'A self-developed agent to browse the web, work with documents, and turn ideas into results. Now in public beta — download to try it.') : t('自研 Agent，帮你浏览网页、处理文档，把想法一步步变成结果。即将上线，敬请期待。', 'A self-developed agent to browse the web, work with documents, and turn ideas into results. Coming soon.')}</p>
+          <p>{release || loading ? t('自研 Agent，帮你浏览网页、处理文档，把想法一步步变成结果。现已开放公测，下载即可使用。', 'A self-developed agent to browse the web, work with documents, and turn ideas into results. Now in public beta — download to try it.') : t('自研 Agent，帮你浏览网页、处理文档，把想法一步步变成结果。即将上线，敬请期待。', 'A self-developed agent to browse the web, work with documents, and turn ideas into results. Coming soon.')}</p>
           {release ? (
             <div className={styles.downloads}>
               <div className={styles.actions}>
@@ -59,7 +62,11 @@ export function AgentPage() {
             </div>
           ) : (
             <div className={styles.actions}>
-              <span className={styles.coming}><ClockCircleOutlined />{t('敬请期待', 'Coming soon')}</span>
+              {loading ? (
+                <span className={styles.coming}><LoadingOutlined />{t('正在获取下载…', 'Loading downloads…')}</span>
+              ) : (
+                <span className={styles.coming}><ClockCircleOutlined />{t('敬请期待', 'Coming soon')}</span>
+              )}
               <Link to="/quickstart" className={styles.textLink}>{t('先了解模型接入', 'Explore model access')} <ArrowRightOutlined /></Link>
             </div>
           )}
@@ -77,12 +84,12 @@ export function AgentPage() {
               <div className={styles.composer}><span>{t('告诉 Agent 你想做什么…', 'Tell the agent what you need…')}</span><b><ArrowRightOutlined /></b></div>
             </div>
           </div>
-          <div className={styles.previewFoot}><span />{release ? t('产品界面预览', 'Interface preview') : t('产品界面预览 · 正在准备中', 'A preview · in the works')}</div>
+          <div className={styles.previewFoot}><span />{release || loading ? t('产品界面预览', 'Interface preview') : t('产品界面预览 · 正在准备中', 'A preview · in the works')}</div>
         </div>
       </section>
 
       <section className={styles.capabilities}>
-        <div className={styles.sectionHead}><span>{release ? t('能做什么', 'WHAT IT DOES') : t('即将解锁', 'WHAT’S COMING')}</span><h2>{t('把更多事情，交给 Agent', 'A capable agent, ready to help')}</h2></div>
+        <div className={styles.sectionHead}><span>{release || loading ? t('能做什么', 'WHAT IT DOES') : t('即将解锁', 'WHAT’S COMING')}</span><h2>{t('把更多事情，交给 Agent', 'A capable agent, ready to help')}</h2></div>
         <div className={styles.cards}>
           {CAPABILITIES.map(([zhTitle, enTitle, zhBody, enBody], index) => (
             <article className={styles.card} key={zhTitle}>
