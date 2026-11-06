@@ -1,4 +1,4 @@
-import { parseBillingExpr } from './billing-expr'
+import { parseBillingExpr, parseFixedRequestPrice } from './billing-expr'
 
 export interface PricingModel {
   model_name: string
@@ -59,6 +59,11 @@ export type ModelPrice =
  */
 export function modelPrice(model: PricingModel, groupRatio?: number): ModelPrice {
   if (model.billing_mode === 'tiered_expr' || model.billing_expr) {
+    const each = model.billing_expr ? parseFixedRequestPrice(model.billing_expr) : null
+    if (each !== null) {
+      if (groupRatio === undefined || !Number.isFinite(groupRatio)) return { kind: 'unknown' }
+      return { kind: 'request', each: each * groupRatio }
+    }
     const tiers = model.billing_expr ? parseBillingExpr(model.billing_expr) : null
     if (!tiers) return { kind: 'dynamic' }
     if (groupRatio === undefined || !Number.isFinite(groupRatio)) return { kind: 'unknown' }

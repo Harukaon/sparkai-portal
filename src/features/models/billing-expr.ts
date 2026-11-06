@@ -12,8 +12,9 @@
  *   tier("standard", p * 0.15 + cr * 0.03 + cc * 0 + c * 0.5)
  *   len <= 272000 ? tier("standard", p * 10 + c * 50) : tier("long_context", p * 20 + c * 75)
  *
+ * 固定请求价由 parseFixedRequestPrice 单独识别：tier("request", fixed(0.01))。
  * 不认的写法包括：图片/音频分项（img、ai、ao…）、请求参数（`param()`）、任务用量
- * （`u("seconds")`）、`fixed()`、时间折扣、乘除括号等。宁可不显示，也不把看不懂的
+ * （`u("seconds")`）、混合计费、时间折扣、乘除括号等。宁可不显示，也不把看不懂的
  * 表达式猜成一个固定价格。
  */
 
@@ -85,7 +86,7 @@ class Parser {
 
   private expectNumber(): number {
     const token = this.take()
-    if (token.type !== 'number') throw new Unsupported('expected number')
+    if (token.type !== 'number' || !Number.isFinite(token.value)) throw new Unsupported('expected finite number')
     return token.value
   }
 
@@ -106,6 +107,21 @@ class Parser {
     this.expectPunct(':')
     // token 数是整数：len < N 等价于 len <= N - 1
     return [{ ...tier, upToLen: op.value === '<' ? limit - 1 : limit }, ...this.parseExpr()]
+  }
+
+  /** 只认整个请求固定收费的一档；条件、乘数和 token 混合收费不猜价。 */
+  parseFixedPrice(): number {
+    this.expectIdent('tier')
+    this.expectPunct('(')
+    if (this.take().type !== 'string') throw new Unsupported('tier name')
+    this.expectPunct(',')
+    this.expectIdent('fixed')
+    this.expectPunct('(')
+    const amount = this.expectNumber()
+    this.expectPunct(')')
+    this.expectPunct(')')
+    if (!Number.isFinite(amount * 1_000_000)) throw new Unsupported('fixed price overflow')
+    return amount
   }
 
   /** tier := 'tier' '(' STRING ',' linear ')' */
@@ -134,6 +150,23 @@ class Parser {
       if (next?.type !== 'punct' || next.value !== '+') return coefficients
       this.take()
     }
+  }
+}
+
+/** 美元 / 成功请求，未乘分组倍率；不认识的表达式返回 null，fixed(0) 保持免费。 */
+export function parseFixedRequestPrice(expression: string): number | null {
+  const versioned = /^v(\d+):/.exec(expression.trim())
+  if (versioned && versioned[1] !== '1') return null
+  const body = versioned ? expression.trim().slice(versioned[0].length) : expression
+  const tokens = tokenize(body)
+  if (!tokens?.length) return null
+  const parser = new Parser(tokens)
+  try {
+    const price = parser.parseFixedPrice()
+    return parser.done() ? price : null
+  } catch (error) {
+    if (error instanceof Unsupported) return null
+    throw error
   }
 }
 

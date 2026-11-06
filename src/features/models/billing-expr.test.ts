@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseBillingExpr } from './billing-expr'
+import { parseBillingExpr, parseFixedRequestPrice } from './billing-expr'
 
 // 下面的表达式都来自 new-api 后端的真实配置或内置表（glm-5.3-flash 是线上 /api/pricing 返回的原文）
 const GLM_FLASH = 'tier("standard", p * 0.15 + cr * 0.03 + cc * 0 + c * 0.5)'
@@ -50,6 +50,34 @@ describe('parseBillingExpr：认得出的写法', () => {
 
   it('支持小数与科学计数法', () => {
     expect(parseBillingExpr('tier("x", p * 0.075 + c * 1e-1)')?.[0]).toMatchObject({ input: 0.075, output: 0.1 })
+  })
+})
+
+describe('固定请求价格', () => {
+  it('解析线上生图单价，金额单位为美元/次，不是每百万 token', () => {
+    expect(parseFixedRequestPrice('tier("request", fixed(0.011428571428571429))')).toBe(0.08 / 7)
+  })
+
+  it('接受免费、科学计数法、空白与 v1 前缀', () => {
+    expect(parseFixedRequestPrice('tier("free", fixed(0))')).toBe(0)
+    expect(parseFixedRequestPrice('v1: \n tier ( "image", fixed ( 1e-2 ) )  ')).toBe(0.01)
+  })
+
+  it.each([
+    'v2:tier("request", fixed(0.01))',
+    'tier("request", fixed(-0.01))',
+    'tier("request", fixed(1e309))',
+    'tier("request", fixed(1e308))',
+    'tier("request", fixed(0.01)) * 2',
+    'tier("request", fixed(0.01) + p * 2)',
+    'tier("request", fixed(0.01)) ||| param("size") == "large" ? 2 : 1',
+    'len <= 100 ? tier("a", fixed(0.01)) : tier("b", fixed(0.02))',
+    'tier("request", fixed(0.01)',
+    'fixed(0.01)',
+    GLM_FLASH,
+    '',
+  ])('未知、混合或带条件的按次价不冒充固定单价：%s', (expression) => {
+    expect(parseFixedRequestPrice(expression)).toBeNull()
   })
 })
 

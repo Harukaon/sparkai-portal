@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { formatUsdAsCny, quotaFormatFrom } from '../console/quota'
 import { matchesGroup, modelPrice } from './pricing'
 import type { PricingModel } from './pricing'
 
@@ -69,6 +70,29 @@ describe('模型定价', () => {
       expect(modelPrice({ ...base, billing_mode: 'tiered_expr', billing_expr: 'tier("s", p * 5 + img * 8 + c * 30)' }, 1)).toEqual({ kind: 'dynamic' })
       expect(modelPrice({ ...base, billing_mode: 'tiered_expr', billing_expr: 'tier("b", u("clips") * 0.1)' }, 1)).toEqual({ kind: 'dynamic' })
       expect(modelPrice({ ...base, billing_expr: 'garbage' }, 1)).toEqual({ kind: 'dynamic' })
+    })
+
+    it('生图模型固定表达式显示人民币0.08元/次，并忽略残留的 token 或按次兜底价格', () => {
+      const image: PricingModel = {
+        ...base, model_name: 'gpt-image-2.5', quota_type: 1, model_price: 99,
+        billing_mode: 'tiered_expr', billing_expr: 'tier("request", fixed(0.011428571428571429))',
+      }
+      const result = modelPrice(image, 1)
+      expect(result).toEqual({ kind: 'request', each: 0.08 / 7 })
+      if (result.kind === 'request') {
+        expect(formatUsdAsCny(result.each, quotaFormatFrom({ usd_exchange_rate: 7 }, 'zh'))).toBe('¥0.08')
+        expect(formatUsdAsCny(result.each, quotaFormatFrom({ usd_exchange_rate: 7 }, 'en'))).toBe('$0.0114')
+      }
+      expect(modelPrice(image, 2)).toEqual({ kind: 'request', each: 0.16 / 7 })
+      expect(modelPrice(image)).toEqual({ kind: 'unknown' })
+      expect(modelPrice({ ...image, billing_expr: 'tier("free", fixed(0))' }, 1)).toEqual({ kind: 'request', each: 0 })
+    })
+
+    it('含条件或请求倍率的表达式不使用 model_price 冒充固定价格', () => {
+      expect(modelPrice({
+        ...base, quota_type: 1, model_price: 0.01, billing_mode: 'tiered_expr',
+        billing_expr: 'tier("request", fixed(0.01)) * 2',
+      }, 1)).toEqual({ kind: 'dynamic' })
     })
 
     it('倍率计费的模型不受影响', () => {
