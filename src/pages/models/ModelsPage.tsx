@@ -337,7 +337,13 @@ export function ModelsPage() {
               const icon = (model: PricingModel) => <ModelIcon icon={model.icon || vendors.find((vendor) => vendor.id === model.vendor_id)?.icon} name={model.model_name} />
               const copyBtn = (model: PricingModel) => <Button type="text" size="small" aria-label={t(`复制 ${model.model_name} 的调用名称`, `Copy model ID ${model.model_name}`)} icon={<CopyOutlined />} onClick={() => void copyModel(model.model_name)} />
               const endpointsOf = (model: PricingModel) => <EndpointTags endpoints={showAllEndpointTypes ? model.supported_endpoint_types ?? [] : (model.supported_endpoint_types ?? []).slice(0, 3)} />
-              const ourUnit = <span className={styles.thUnit}>{t('元 / 百万 token', 'USD / M tokens')}</span>
+              const isImage = (model: PricingModel) => model.supported_endpoint_types?.includes('image-generation') ?? false
+              const ourUnit = (model: PricingModel, className = styles.thUnit) => {
+                const price = modelPrice(model, 1)
+                if (price.kind === 'request') return <span className={className}>{t('按次计费', 'Per call')}</span>
+                if (price.kind === 'tokens' || price.kind === 'tiers') return <span className={className}>{t('元 / 百万 token', 'USD / M tokens')}</span>
+                return null
+              }
               const refUnit = <span className={styles.thUnit}>{t('元 / 百万 token', 'CNY / M tokens')}</span>
 
               if (view === 'card') return (
@@ -354,17 +360,17 @@ export function ModelsPage() {
                       </header>
                       {model.description ? <p className={styles.cardDesc}>{model.description}</p> : null}
                       <div className={styles.cardMeta}>
-                        <IntelligenceCell label={t('智力', 'IQ')} score={intelligenceOf(intelligence.data, model.model_name)} />
+                        {!isImage(model) ? <IntelligenceCell label={t('智力', 'IQ')} score={intelligenceOf(intelligence.data, model.model_name)} /> : null}
                         {endpointsOf(model)}
                       </div>
                       <div className={styles.cardPrice}>
                         <div>
-                          <span className={styles.cardLabel}>{t('本站价格', 'Our price')}{ourUnit}</span>
+                          <span className={styles.cardLabel}>{t('本站价格', 'Our price')}{ourUnit(model)}</span>
                           {ourPrice(model)}
                         </div>
                         {officialShown ? (
                           <div>
-                            <span className={styles.cardLabel}>{t('官方价格', 'Official price')}{refUnit}</span>
+                            <span className={styles.cardLabel}>{t('官方价格', 'Official price')}{officialPriceOf(model.model_name, officialPricing.data) ? refUnit : null}</span>
                             {officialPrice(model)}
                           </div>
                         ) : null}
@@ -382,7 +388,7 @@ export function ModelsPage() {
                         <th scope="col">{t('模型', 'Model')}</th>
                         <th scope="col">{t('智力', 'IQ')}</th>
                         <th scope="col">{t('厂商与能力', 'Vendor & capabilities')}</th>
-                        <th scope="col">{t('本站价格', 'Our price')}{ourUnit}</th>
+                        <th scope="col">{t('本站价格', 'Our price')}</th>
                         {showOfficial ? <th scope="col">{t('官方价格', 'Official price')}{refUnit}</th> : null}
                       </tr>
                     </thead>
@@ -399,14 +405,19 @@ export function ModelsPage() {
                               {copyBtn(model)}
                             </div>
                           </td>
-                          <td><IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} /></td>
+                          <td>{isImage(model) ? <span className={styles.muted}>{t('不适用', 'Not applicable')}</span> : <IntelligenceCell score={intelligenceOf(intelligence.data, model.model_name)} />}</td>
                           <td>
                             <div className={styles.meta}>
                               <span className={styles.vendorName}>{vendorName(model, vendors, t('其他', 'Other'))}</span>
                               {endpointsOf(model)}
                             </div>
                           </td>
-                          <td className={styles.price}>{ourPrice(model)}</td>
+                          <td className={styles.price}>
+                            <div className={styles.priceCell}>
+                              {ourUnit(model, styles.rowUnit)}
+                              {ourPrice(model)}
+                            </div>
+                          </td>
                           {showOfficial ? <td className={styles.price}>{officialPrice(model)}</td> : null}
                         </tr>
                       ))}

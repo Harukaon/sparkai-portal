@@ -2,6 +2,7 @@ import { Tooltip } from 'antd'
 
 import { endpointLabel } from '@/features/models/endpoint-label'
 import { BrandIcon } from '@/shared/components/BrandIcon'
+import { useT } from '@/shared/i18n'
 
 import styles from './EndpointTags.module.css'
 
@@ -20,6 +21,7 @@ const BRAND_BY_ENDPOINT: Record<string, string> = {
 }
 
 export function EndpointTags({ endpoints }: { endpoints: string[] }) {
+  const t = useT()
   if (!endpoints.length) return null
   return (
     <div className={styles.tags}>
@@ -33,9 +35,10 @@ export function EndpointTags({ endpoints }: { endpoints: string[] }) {
           )
         }
         if (!brand) {
+          const isImageGeneration = endpoint.toLowerCase() === 'image-generation'
           return (
-            <Tooltip key={endpoint} title={endpointLabel(endpoint)}>
-              <span className={`${styles.chip} ${styles.textChip}`}>{endpoint}</span>
+            <Tooltip key={endpoint} title={isImageGeneration ? t('图像生成（POST /v1/images/generations）', 'Image generation (POST /v1/images/generations)') : endpointLabel(endpoint)}>
+              <span className={`${styles.chip} ${styles.textChip}`}>{isImageGeneration ? t('图像生成', 'Image generation') : endpoint}</span>
             </Tooltip>
           )
         }

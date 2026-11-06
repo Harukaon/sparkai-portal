@@ -171,7 +171,18 @@
   font-size: var(--text-xs);
 }
 
-/* 价格：「输入 ¥x」「输出 ¥y」两列紧挨着对齐，单位写在表头，不再单独占一行 */
+.priceCell {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rowUnit {
+  color: var(--color-ink-subtle);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+/* 价格：「输入 ¥x」「输出 ¥y」两列紧挨着对齐；混合计费列表按模型标单位 */
 .priceStack {
   display: grid;
   grid-template-columns: auto auto;
